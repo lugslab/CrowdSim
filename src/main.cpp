@@ -9,110 +9,110 @@
 
 int main()
 {
-    constexpr unsigned int width = 1000;
-    constexpr unsigned int height = 700;
-    constexpr float radius = 4.f;
-    constexpr int agentCount = 100;
+	constexpr unsigned int width = 1000;
+	constexpr unsigned int height = 700;
+	constexpr float radius = 4.f;
+	constexpr int agentCount = 100;
 
-    sf::RenderWindow window(
-        sf::VideoMode({ width, height }),
-        "CrowdSim"
-    );
+	sf::RenderWindow window(
+		sf::VideoMode({ width, height }),
+		"CrowdSim"
+	);
 
-    window.setFramerateLimit(60);
+	window.setFramerateLimit(60);
 
-    std::mt19937 rng(std::random_device{}());
+	std::mt19937 rng(std::random_device{}());
 
-    std::uniform_real_distribution<float> xDist(
-        radius, static_cast<float>(width) - radius
-    );
+	std::uniform_real_distribution<float> xDist(
+		radius, static_cast<float>(width) - radius
+	);
 
-    std::uniform_real_distribution<float> yDist(
-        radius, static_cast<float>(height) - radius
-    );
+	std::uniform_real_distribution<float> yDist(
+		radius, static_cast<float>(height) - radius
+	);
 
-    std::uniform_real_distribution<float> angleDist(
-        0.f, 6.2831853f
-    );
+	std::uniform_real_distribution<float> angleDist(
+		0.f, 6.2831853f
+	);
 
-    std::uniform_real_distribution<float> speedDist(
-        25.f, 85.f
-    );
+	std::uniform_real_distribution<float> speedDist(
+		25.f, 85.f
+	);
 
-    std::vector<Agent> agents;
-    agents.reserve(agentCount);
+	std::vector<Agent> agents;
+	agents.reserve(agentCount);
 
-    for (int i = 0; i < agentCount; ++i)
-    {
-        Agent agent;
+	for (int i = 0; i < agentCount; ++i)
+	{
+		Agent agent;
 
-        agent.position = { xDist(rng), yDist(rng) };
+		agent.position = { xDist(rng), yDist(rng) };
 
-        float angle = angleDist(rng);
-        float speed = speedDist(rng);
+		float angle = angleDist(rng);
+		float speed = speedDist(rng);
 
-        agent.velocity = {
-            std::cos(angle) * speed,
-            std::sin(angle) * speed
-        };
+		agent.velocity = {
+			std::cos(angle) * speed,
+			std::sin(angle) * speed
+		};
 
-        agent.preferredSpeed = speed;
+		agent.preferredSpeed = speed;
 
-        agents.push_back(agent);
-    }
+		agents.push_back(agent);
+	}
 
-    sf::CircleShape dot(radius);
-    dot.setOrigin({ radius, radius });
+	sf::CircleShape dot(radius);
+	dot.setOrigin({ radius, radius });
 
-    sf::Clock clock;
+	sf::Clock clock;
 
-    while (window.isOpen())
-    {
-        while (const auto event = window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>())
-            {
-                window.close();
-            }
-        }
+	while (window.isOpen())
+	{
+		while (const auto event = window.pollEvent())
+		{
+			if (event->is<sf::Event::Closed>())
+			{
+				window.close();
+			}
+		}
 
-        float deltaTime = clock.restart().asSeconds();
+		float deltaTime = clock.restart().asSeconds();
 
-        // Prevent unusually large movement after a pause.
-        deltaTime = std::min(deltaTime, 0.05f);
+		// Prevent unusually large movement after a pause.
+		deltaTime = std::min(deltaTime, 0.05f);
 
-        for (auto& agent : agents)
-        {
-            agent.update(
-                deltaTime,
-                static_cast<float>(width),
-                static_cast<float>(height)
-            );
-        }
+		for (auto& agent : agents)
+		{
+			agent.update(
+				deltaTime,
+				static_cast<float>(width),
+				static_cast<float>(height)
+			);
+		}
 
-        window.clear(sf::Color(25, 28, 35));
+		window.clear(sf::Color(25, 28, 35));
 
-        for (const auto& agent : agents)
-        {
-            float speed = std::sqrt(
-                agent.velocity.x * agent.velocity.x +
-                agent.velocity.y * agent.velocity.y
-            );
+		for (const auto& agent : agents)
+		{
+			float speed = std::sqrt(
+				agent.velocity.x * agent.velocity.x +
+				agent.velocity.y * agent.velocity.y
+			);
 
-            // Faster agents appear warmer in colour.
-            if (speed > 65.f)
-                dot.setFillColor(sf::Color(255, 140, 90));
-            else if (speed > 40.f)
-                dot.setFillColor(sf::Color(100, 210, 150));
-            else
-                dot.setFillColor(sf::Color(80, 170, 255));
+			// Faster agents appear warmer in colour.
+			if (speed > 65.f)
+				dot.setFillColor(sf::Color(255, 140, 90));
+			else if (speed > 40.f)
+				dot.setFillColor(sf::Color(100, 210, 150));
+			else
+				dot.setFillColor(sf::Color(80, 170, 255));
 
-            dot.setPosition(agent.position);
-            window.draw(dot);
-        }
+			dot.setPosition(agent.position);
+			window.draw(dot);
+		}
 
-        window.display();
-    }
+		window.display();
+	}
 
-    return 0;
+	return 0;
 }
