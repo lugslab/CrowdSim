@@ -13,6 +13,8 @@ find_package(SFML 3 COMPONENTS Graphics Window System CONFIG REQUIRED)
 
 add_executable(CrowdSim
     src/main.cpp
+    src/Agent.cpp
+    src/Agent.hpp
 )
 
 target_link_libraries(CrowdSim PRIVATE
