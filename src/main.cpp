@@ -3,6 +3,7 @@
 
 #include "Agent.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <random>
 #include <vector>
@@ -51,10 +52,13 @@ int main()
 		float angle = angleDist(rng);
 		float speed = speedDist(rng);
 
-		agent.velocity = {
-			std::cos(angle) * speed,
-			std::sin(angle) * speed
+		agent.desiredDirection = {
+			std::cos(angle),
+			std::sin(angle)
 		};
+
+		agent.velocity =
+			agent.desiredDirection * speed;
 
 		agent.preferredSpeed = speed;
 
@@ -71,20 +75,21 @@ int main()
 		while (const auto event = window.pollEvent())
 		{
 			if (event->is<sf::Event::Closed>())
-			{
 				window.close();
-			}
 		}
 
-		float deltaTime = clock.restart().asSeconds();
+		float deltaTime = std::min(
+			clock.restart().asSeconds(), 0.05f
+		);
 
-		// Prevent unusually large movement after a pause.
-		deltaTime = std::min(deltaTime, 0.05f);
+		// Everyone observes the same world state.
+		const std::vector<Agent> snapshot = agents;
 
 		for (auto& agent : agents)
 		{
 			agent.update(
 				deltaTime,
+				snapshot,
 				static_cast<float>(width),
 				static_cast<float>(height)
 			);
@@ -99,13 +104,18 @@ int main()
 				agent.velocity.y * agent.velocity.y
 			);
 
-			// Faster agents appear warmer in colour.
 			if (speed > 65.f)
-				dot.setFillColor(sf::Color(255, 140, 90));
+				dot.setFillColor(
+					sf::Color(255, 140, 90)
+				);
 			else if (speed > 40.f)
-				dot.setFillColor(sf::Color(100, 210, 150));
+				dot.setFillColor(
+					sf::Color(100, 210, 150)
+				);
 			else
-				dot.setFillColor(sf::Color(80, 170, 255));
+				dot.setFillColor(
+					sf::Color(80, 170, 255)
+				);
 
 			dot.setPosition(agent.position);
 			window.draw(dot);

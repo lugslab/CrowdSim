@@ -2,6 +2,7 @@
 #include "Agent.hpp"
 
 void Agent::update(float deltaTime, float width, float height)
+
 {
 	position += velocity * deltaTime;
 
