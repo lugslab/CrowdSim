@@ -1,7 +1,11 @@
 
 #pragma once
 
+#include "Personality.hpp"
+
 #include <SFML/System/Vector2.hpp>
+
+#include <cstddef>
 #include <vector>
 
 struct Agent
@@ -10,12 +14,12 @@ struct Agent
     sf::Vector2f velocity{};
     sf::Vector2f destination{};
 
-    float preferredSpeed = 50.f;
-    float sociability = 0.5f;
-    float riskAversion = 0.5f;
+    Personality personality{};
 
-    float detectionRadius = 35.f;
-    float personalSpace = 12.f;
+    // Index of a companion in the simulation.
+    // -1 means no companion.
+    int companionIndex = -1;
+
     float maxAcceleration = 150.f;
 
     void update(

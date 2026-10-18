@@ -35,17 +35,18 @@ void Agent::update(
     float height
 )
 {
-    // 1. Seek the destination.
+    const Personality& p = personality;
+
+    // 1. Goal seeking.
     sf::Vector2f toDestination =
         destination - position;
 
     float distanceToDestination =
         length(toDestination);
 
-    float desiredSpeed = preferredSpeed;
-
-    // Slow down near the destination.
     constexpr float slowingRadius = 50.f;
+
+    float desiredSpeed = p.preferredSpeed;
 
     if (distanceToDestination < slowingRadius)
     {
@@ -53,10 +54,11 @@ void Agent::update(
             distanceToDestination / slowingRadius;
     }
 
-    sf::Vector2f desiredVelocity =
-        normalize(toDestination) * desiredSpeed;
+    sf::Vector2f goalVelocity =
+        normalize(toDestination) *
+        desiredSpeed * p.goalWeight;
 
-    // 2. Calculate separation.
+    // 2. Separation.
     sf::Vector2f avoidance{ 0.f, 0.f };
 
     for (std::size_t i = 0; i < neighbours.size(); ++i)
@@ -72,31 +74,52 @@ void Agent::update(
         float distance = length(difference);
 
         if (distance < 0.0001f ||
-            distance > detectionRadius)
+            distance > p.detectionRadius)
             continue;
 
         float strength =
-            (detectionRadius - distance) /
-            detectionRadius;
+            (p.detectionRadius - distance) /
+            p.detectionRadius;
 
-        if (distance < personalSpace)
+        if (distance < p.personalSpace)
             strength *= 3.f;
 
         avoidance +=
             normalize(difference) * strength;
     }
 
-    // 3. Combine seeking and avoidance.
-    sf::Vector2f targetVelocity = desiredVelocity;
+    sf::Vector2f targetVelocity = goalVelocity;
 
     if (length(avoidance) > 0.0001f)
     {
         targetVelocity +=
             normalize(avoidance) *
-            preferredSpeed * 1.5f;
+            p.preferredSpeed * p.avoidanceWeight;
     }
 
-    // 4. Apply limited acceleration.
+    // 3. Social attraction.
+    if (companionIndex >= 0 &&
+        static_cast<std::size_t>(companionIndex) <
+        neighbours.size())
+    {
+        const Agent& companion =
+            neighbours[companionIndex];
+
+        sf::Vector2f toCompanion =
+            companion.position - position;
+
+        float distance = length(toCompanion);
+
+        // Follow only when sufficiently separated.
+        if (distance > 45.f)
+        {
+            targetVelocity +=
+                normalize(toCompanion) *
+                p.preferredSpeed * p.socialWeight;
+        }
+    }
+
+    // 4. Steering acceleration.
     sf::Vector2f acceleration =
         targetVelocity - velocity;
 
@@ -110,22 +133,21 @@ void Agent::update(
 
     velocity += acceleration * deltaTime;
 
-    // Limit speed.
+    // Limit maximum speed.
     float speed = length(velocity);
 
-    if (speed > preferredSpeed * 1.5f)
+    float maxSpeed = p.preferredSpeed * 1.5f;
+
+    if (speed > maxSpeed)
     {
-        velocity =
-            normalize(velocity) *
-            preferredSpeed * 1.5f;
+        velocity = normalize(velocity) * maxSpeed;
     }
 
-    // 5. Update position.
+    // 5. Movement.
     position += velocity * deltaTime;
 
     constexpr float radius = 4.f;
 
-    // Keep agents inside the simulation area.
     position.x = std::clamp(
         position.x, radius, width - radius
     );

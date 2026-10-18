@@ -15,6 +15,7 @@ add_executable(CrowdSim
     src/main.cpp
     src/Agent.cpp
     src/Agent.hpp
+    src/Personality.hpp
     src/Simulation.hpp
     src/Simulation.cpp
 )

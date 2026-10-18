@@ -63,26 +63,35 @@ int main()
         }
 
         // Draw agents.
-        for (const auto& agent :
-            simulation.getAgents())
-        {
-            float speed = std::sqrt(
-                agent.velocity.x * agent.velocity.x +
-                agent.velocity.y * agent.velocity.y
-            );
 
-            if (speed > 65.f)
+        for (const auto& agent : simulation.getAgents())
+        {
+            switch (agent.personality.type)
+            {
+            case PersonalityType::Cautious:
                 agentShape.setFillColor(
-                    sf::Color(255, 140, 90)
+                    sf::Color(96, 165, 250)
                 );
-            else if (speed > 40.f)
+                break;
+
+            case PersonalityType::Impatient:
                 agentShape.setFillColor(
-                    sf::Color(100, 210, 150)
+                    sf::Color(251, 146, 60)
                 );
-            else
+                break;
+
+            case PersonalityType::Sociable:
                 agentShape.setFillColor(
-                    sf::Color(80, 170, 255)
+                    sf::Color(74, 222, 128)
                 );
+                break;
+
+            case PersonalityType::Independent:
+                agentShape.setFillColor(
+                    sf::Color(192, 132, 252)
+                );
+                break;
+            }
 
             agentShape.setPosition(agent.position);
             window.draw(agentShape);

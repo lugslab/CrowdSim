@@ -29,4 +29,6 @@ private:
 
     sf::Vector2f randomPosition();
     sf::Vector2f randomDestination();
+
+    void assignCompanions();
 };
