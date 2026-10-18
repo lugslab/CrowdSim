@@ -15,6 +15,8 @@ add_executable(CrowdSim
     src/main.cpp
     src/Agent.cpp
     src/Agent.hpp
+    src/Simulation.hpp
+    src/Simulation.cpp
 )
 
 target_link_libraries(CrowdSim PRIVATE

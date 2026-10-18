@@ -1,128 +1,95 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Agent.hpp"
+#include "Simulation.hpp"
 
 #include <algorithm>
 #include <cmath>
-#include <random>
-#include <vector>
 
 int main()
 {
-	constexpr unsigned int width = 1000;
-	constexpr unsigned int height = 700;
-	constexpr float radius = 4.f;
-	constexpr int agentCount = 100;
+    constexpr unsigned int width = 1000;
+    constexpr unsigned int height = 700;
 
-	sf::RenderWindow window(
-		sf::VideoMode({ width, height }),
-		"CrowdSim"
-	);
+    sf::RenderWindow window(
+        sf::VideoMode({ width, height }),
+        "CrowdSim - Goal Directed Movement"
+    );
 
-	window.setFramerateLimit(60);
+    window.setFramerateLimit(60);
 
-	std::mt19937 rng(std::random_device{}());
+    Simulation simulation(
+        static_cast<float>(width),
+        static_cast<float>(height)
+    );
 
-	std::uniform_real_distribution<float> xDist(
-		radius, static_cast<float>(width) - radius
-	);
+    sf::CircleShape agentShape(4.f);
+    agentShape.setOrigin({ 4.f, 4.f });
 
-	std::uniform_real_distribution<float> yDist(
-		radius, static_cast<float>(height) - radius
-	);
+    sf::CircleShape destinationShape(12.f);
+    destinationShape.setOrigin({ 12.f, 12.f });
+    destinationShape.setFillColor(
+        sf::Color(70, 200, 130, 50)
+    );
+    destinationShape.setOutlineColor(
+        sf::Color(70, 200, 130)
+    );
+    destinationShape.setOutlineThickness(2.f);
 
-	std::uniform_real_distribution<float> angleDist(
-		0.f, 6.2831853f
-	);
+    sf::Clock clock;
 
-	std::uniform_real_distribution<float> speedDist(
-		25.f, 85.f
-	);
+    while (window.isOpen())
+    {
+        while (const auto event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+                window.close();
+        }
 
-	std::vector<Agent> agents;
-	agents.reserve(agentCount);
+        float deltaTime = std::min(
+            clock.restart().asSeconds(), 0.05f
+        );
 
-	for (int i = 0; i < agentCount; ++i)
-	{
-		Agent agent;
+        simulation.update(deltaTime);
 
-		agent.position = { xDist(rng), yDist(rng) };
+        window.clear(sf::Color(25, 28, 35));
 
-		float angle = angleDist(rng);
-		float speed = speedDist(rng);
+        // Draw destinations.
+        for (const auto& destination :
+            simulation.getDestinations())
+        {
+            destinationShape.setPosition(destination);
+            window.draw(destinationShape);
+        }
 
-		agent.desiredDirection = {
-			std::cos(angle),
-			std::sin(angle)
-		};
+        // Draw agents.
+        for (const auto& agent :
+            simulation.getAgents())
+        {
+            float speed = std::sqrt(
+                agent.velocity.x * agent.velocity.x +
+                agent.velocity.y * agent.velocity.y
+            );
 
-		agent.velocity =
-			agent.desiredDirection * speed;
+            if (speed > 65.f)
+                agentShape.setFillColor(
+                    sf::Color(255, 140, 90)
+                );
+            else if (speed > 40.f)
+                agentShape.setFillColor(
+                    sf::Color(100, 210, 150)
+                );
+            else
+                agentShape.setFillColor(
+                    sf::Color(80, 170, 255)
+                );
 
-		agent.preferredSpeed = speed;
+            agentShape.setPosition(agent.position);
+            window.draw(agentShape);
+        }
 
-		agents.push_back(agent);
-	}
+        window.display();
+    }
 
-	sf::CircleShape dot(radius);
-	dot.setOrigin({ radius, radius });
-
-	sf::Clock clock;
-
-	while (window.isOpen())
-	{
-		while (const auto event = window.pollEvent())
-		{
-			if (event->is<sf::Event::Closed>())
-				window.close();
-		}
-
-		float deltaTime = std::min(
-			clock.restart().asSeconds(), 0.05f
-		);
-
-		// Everyone observes the same world state.
-		const std::vector<Agent> snapshot = agents;
-
-		for (auto& agent : agents)
-		{
-			agent.update(
-				deltaTime,
-				snapshot,
-				static_cast<float>(width),
-				static_cast<float>(height)
-			);
-		}
-
-		window.clear(sf::Color(25, 28, 35));
-
-		for (const auto& agent : agents)
-		{
-			float speed = std::sqrt(
-				agent.velocity.x * agent.velocity.x +
-				agent.velocity.y * agent.velocity.y
-			);
-
-			if (speed > 65.f)
-				dot.setFillColor(
-					sf::Color(255, 140, 90)
-				);
-			else if (speed > 40.f)
-				dot.setFillColor(
-					sf::Color(100, 210, 150)
-				);
-			else
-				dot.setFillColor(
-					sf::Color(80, 170, 255)
-				);
-
-			dot.setPosition(agent.position);
-			window.draw(dot);
-		}
-
-		window.display();
-	}
-
-	return 0;
+    return 0;
 }

@@ -6,9 +6,9 @@
 
 struct Agent
 {
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-    sf::Vector2f desiredDirection;
+    sf::Vector2f position{};
+    sf::Vector2f velocity{};
+    sf::Vector2f destination{};
 
     float preferredSpeed = 50.f;
     float sociability = 0.5f;
@@ -21,7 +21,10 @@ struct Agent
     void update(
         float deltaTime,
         const std::vector<Agent>& neighbours,
+        std::size_t selfIndex,
         float width,
         float height
     );
+
+    bool hasReachedDestination() const;
 };

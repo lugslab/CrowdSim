@@ -22,17 +22,50 @@ namespace
     }
 }
 
+bool Agent::hasReachedDestination() const
+{
+    return length(destination - position) < 12.f;
+}
+
 void Agent::update(
     float deltaTime,
     const std::vector<Agent>& neighbours,
+    std::size_t selfIndex,
     float width,
     float height
 )
 {
+    // 1. Seek the destination.
+    sf::Vector2f toDestination =
+        destination - position;
+
+    float distanceToDestination =
+        length(toDestination);
+
+    float desiredSpeed = preferredSpeed;
+
+    // Slow down near the destination.
+    constexpr float slowingRadius = 50.f;
+
+    if (distanceToDestination < slowingRadius)
+    {
+        desiredSpeed *=
+            distanceToDestination / slowingRadius;
+    }
+
+    sf::Vector2f desiredVelocity =
+        normalize(toDestination) * desiredSpeed;
+
+    // 2. Calculate separation.
     sf::Vector2f avoidance{ 0.f, 0.f };
 
-    for (const auto& other : neighbours)
+    for (std::size_t i = 0; i < neighbours.size(); ++i)
     {
+        if (i == selfIndex)
+            continue;
+
+        const Agent& other = neighbours[i];
+
         sf::Vector2f difference =
             position - other.position;
 
@@ -42,7 +75,6 @@ void Agent::update(
             distance > detectionRadius)
             continue;
 
-        // Stronger repulsion at shorter distances.
         float strength =
             (detectionRadius - distance) /
             detectionRadius;
@@ -50,13 +82,12 @@ void Agent::update(
         if (distance < personalSpace)
             strength *= 3.f;
 
-        avoidance += normalize(difference) * strength;
+        avoidance +=
+            normalize(difference) * strength;
     }
 
-    sf::Vector2f preferredVelocity =
-        normalize(desiredDirection) * preferredSpeed;
-
-    sf::Vector2f targetVelocity = preferredVelocity;
+    // 3. Combine seeking and avoidance.
+    sf::Vector2f targetVelocity = desiredVelocity;
 
     if (length(avoidance) > 0.0001f)
     {
@@ -65,7 +96,7 @@ void Agent::update(
             preferredSpeed * 1.5f;
     }
 
-    // Steer towards the target velocity.
+    // 4. Apply limited acceleration.
     sf::Vector2f acceleration =
         targetVelocity - velocity;
 
@@ -79,7 +110,7 @@ void Agent::update(
 
     velocity += acceleration * deltaTime;
 
-    // Limit maximum speed.
+    // Limit speed.
     float speed = length(velocity);
 
     if (speed > preferredSpeed * 1.5f)
@@ -89,28 +120,17 @@ void Agent::update(
             preferredSpeed * 1.5f;
     }
 
+    // 5. Update position.
     position += velocity * deltaTime;
 
     constexpr float radius = 4.f;
 
-    // Reflect direction at the boundaries.
-    if (position.x < radius ||
-        position.x > width - radius)
-    {
-        velocity.x = -velocity.x;
-        desiredDirection.x = -desiredDirection.x;
-        position.x = std::clamp(
-            position.x, radius, width - radius
-        );
-    }
+    // Keep agents inside the simulation area.
+    position.x = std::clamp(
+        position.x, radius, width - radius
+    );
 
-    if (position.y < radius ||
-        position.y > height - radius)
-    {
-        velocity.y = -velocity.y;
-        desiredDirection.y = -desiredDirection.y;
-        position.y = std::clamp(
-            position.y, radius, height - radius
-        );
-    }
+    position.y = std::clamp(
+        position.y, radius, height - radius
+    );
 }
