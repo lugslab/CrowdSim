@@ -22,15 +22,24 @@ Simulation::Simulation(float width, float height)
 
     m_agents.reserve(agentCount);
 
-    for (int i = 0; i < agentCount; ++i)
+    initialiseAgents(100);
+
+    assignCompanions();
+}
+
+void Simulation::initialiseAgents(std::size_t agentCount)
+{
+    m_agents.clear();
+    m_agents.reserve(agentCount);
+
+    for (std::size_t i = 0; i < agentCount; ++i)
     {
         Agent agent;
 
         agent.position = randomPosition();
         agent.destination = randomDestination();
 
-        PersonalityType type =
-            static_cast<PersonalityType>(i % 4);
+        const auto type = static_cast<PersonalityType>(i % 4);
 
         agent.personality = Personality::create(type);
 
@@ -38,6 +47,18 @@ Simulation::Simulation(float width, float height)
     }
 
     assignCompanions();
+}
+
+void Simulation::reset(std::size_t agentCount)
+{
+    initialiseAgents(agentCount);
+    m_stats = DebugStats{};
+    m_stats.agentCount = m_agents.size();
+}
+
+std::size_t Simulation::getAgentCount() const
+{
+    return m_agents.size();
 }
 
 sf::Vector2f Simulation::randomPosition()
