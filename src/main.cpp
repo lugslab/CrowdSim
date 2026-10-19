@@ -2,8 +2,10 @@
 #include <SFML/Graphics.hpp>
 
 #include "Simulation.hpp"
+#include "DebugPanel.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 int main()
@@ -13,7 +15,7 @@ int main()
 
     sf::RenderWindow window(
         sf::VideoMode({ width, height }),
-        "CrowdSim - Goal Directed Movement"
+        "CrowdSim - Debug Panel"
     );
 
     window.setFramerateLimit(60);
@@ -23,6 +25,8 @@ int main()
         static_cast<float>(height)
     );
 
+    DebugPanel debugPanel("assets/COUR.ttf");
+    
     sf::CircleShape agentShape(4.f);
     agentShape.setOrigin({ 4.f, 4.f });
 
@@ -38,19 +42,33 @@ int main()
 
     sf::Clock clock;
 
+
+    using Clock = std::chrono::steady_clock;
+
+    auto previousFrame = Clock::now();
+
     while (window.isOpen())
     {
+        const auto frameStart = Clock::now();
+
+        float deltaTime =
+            std::chrono::duration<float>(
+                frameStart - previousFrame
+            ).count();
+
+        previousFrame = frameStart;
+
         while (const auto event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
                 window.close();
         }
 
-        float deltaTime = std::min(
-            clock.restart().asSeconds(), 0.05f
+        simulation.update(
+            std::min(deltaTime, 0.05f)
         );
 
-        simulation.update(deltaTime);
+        const auto renderStart = Clock::now();
 
         window.clear(sf::Color(25, 28, 35));
 
@@ -63,39 +81,51 @@ int main()
         }
 
         // Draw agents.
-
-        for (const auto& agent : simulation.getAgents())
+        for (const auto& agent :
+            simulation.getAgents())
         {
             switch (agent.personality.type)
             {
             case PersonalityType::Cautious:
                 agentShape.setFillColor(
-                    sf::Color(96, 165, 250)
-                );
+                    sf::Color(96, 165, 250));
                 break;
 
             case PersonalityType::Impatient:
                 agentShape.setFillColor(
-                    sf::Color(251, 146, 60)
-                );
+                    sf::Color(251, 146, 60));
                 break;
 
             case PersonalityType::Sociable:
                 agentShape.setFillColor(
-                    sf::Color(74, 222, 128)
-                );
+                    sf::Color(74, 222, 128));
                 break;
 
             case PersonalityType::Independent:
                 agentShape.setFillColor(
-                    sf::Color(192, 132, 252)
-                );
+                    sf::Color(192, 132, 252));
                 break;
             }
 
             agentShape.setPosition(agent.position);
             window.draw(agentShape);
         }
+
+        const auto renderEnd = Clock::now();
+
+        DebugStats stats = simulation.getStats();
+
+        stats.frameTimeMs = deltaTime * 1000.f;
+
+        if (deltaTime > 0.f)
+            stats.fps = 1.f / deltaTime;
+
+        stats.renderTimeMs =
+            std::chrono::duration<float, std::milli>(
+                renderEnd - renderStart
+            ).count();
+
+        debugPanel.draw(window, stats);
 
         window.display();
     }

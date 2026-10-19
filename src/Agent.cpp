@@ -32,7 +32,9 @@ void Agent::update(
     const std::vector<Agent>& neighbours,
     std::size_t selfIndex,
     float width,
-    float height
+    float height,
+    std::size_t& neighbourChecks,
+    std::size_t& neighbourInteractions
 )
 {
     const Personality& p = personality;
@@ -66,6 +68,8 @@ void Agent::update(
         if (i == selfIndex)
             continue;
 
+        ++neighbourChecks;
+
         const Agent& other = neighbours[i];
 
         sf::Vector2f difference =
@@ -76,6 +80,8 @@ void Agent::update(
         if (distance < 0.0001f ||
             distance > p.detectionRadius)
             continue;
+
+        ++neighbourInteractions;
 
         float strength =
             (p.detectionRadius - distance) /

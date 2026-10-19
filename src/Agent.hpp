@@ -27,7 +27,9 @@ struct Agent
         const std::vector<Agent>& neighbours,
         std::size_t selfIndex,
         float width,
-        float height
+        float height,
+        std::size_t& neighbourChecks,
+        std::size_t& neighbourInteractions
     );
 
     bool hasReachedDestination() const;

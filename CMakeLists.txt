@@ -18,6 +18,9 @@ add_executable(CrowdSim
     src/Personality.hpp
     src/Simulation.hpp
     src/Simulation.cpp
+    src/DebugStats.hpp
+    src/DebugPanel.hpp
+    src/DebugPanel.cpp
 )
 
 target_link_libraries(CrowdSim PRIVATE
@@ -32,3 +35,11 @@ if(WIN32)
         COMMAND_EXPAND_LISTS
     )
 endif()
+
+add_custom_command(TARGET CrowdSim POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:CrowdSim>/assets"
+COMMENT "Copying CrowdSim assets"
+VERBATIM
+)

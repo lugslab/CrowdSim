@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Agent.hpp"
+#include "DebugStats.hpp"
 
 #include <SFML/System/Vector2.hpp>
 
@@ -17,10 +18,13 @@ public:
 
     const std::vector<Agent>& getAgents() const;
     const std::vector<sf::Vector2f>& getDestinations() const;
+    const DebugStats& getStats() const;
 
 private:
     float m_width;
     float m_height;
+    
+    DebugStats m_stats;
 
     std::vector<Agent> m_agents;
     std::vector<sf::Vector2f> m_destinations;

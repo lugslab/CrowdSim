@@ -1,6 +1,8 @@
 
 #include "Simulation.hpp"
 
+#include <chrono>
+#include <cmath>
 #include <random>
 
 Simulation::Simulation(float width, float height)
@@ -109,6 +111,14 @@ void Simulation::assignCompanions()
 
 void Simulation::update(float deltaTime)
 {
+    using Clock = std::chrono::steady_clock;
+
+    const auto start = Clock::now();
+
+    // Reset per-update counters.
+    m_stats.neighbourChecks = 0;
+    m_stats.neighbourInteractions = 0;
+
     const std::vector<Agent> snapshot = m_agents;
 
     for (std::size_t i = 0; i < m_agents.size(); ++i)
@@ -118,7 +128,9 @@ void Simulation::update(float deltaTime)
             snapshot,
             i,
             m_width,
-            m_height
+            m_height,
+            m_stats.neighbourChecks,
+            m_stats.neighbourInteractions
         );
     }
 
@@ -159,6 +171,38 @@ void Simulation::update(float deltaTime)
             agent.destination = randomDestination();
         }
     }
+    m_stats.agentCount = m_agents.size();
+    m_stats.personalityCounts.fill(0);
+
+    float totalSpeed = 0.f;
+
+    for (const auto& agent : m_agents)
+    {
+        totalSpeed += std::sqrt(
+            agent.velocity.x * agent.velocity.x +
+            agent.velocity.y * agent.velocity.y
+        );
+
+        const auto index =
+            static_cast<std::size_t>(
+                agent.personality.type
+                );
+
+        ++m_stats.personalityCounts[index];
+    }
+
+    if (!m_agents.empty())
+    {
+        m_stats.averageSpeed =
+            totalSpeed / m_agents.size();
+    }
+
+    const auto end = Clock::now();
+
+    m_stats.simulationTimeMs =
+        std::chrono::duration<float, std::milli>(
+            end - start
+        ).count();
 }
 
 const std::vector<Agent>& Simulation::getAgents() const
@@ -170,4 +214,9 @@ const std::vector<sf::Vector2f>&
 Simulation::getDestinations() const
 {
     return m_destinations;
+}
+
+const DebugStats& Simulation::getStats() const
+{
+    return m_stats;
 }
