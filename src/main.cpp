@@ -1,12 +1,14 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Simulation.hpp"
 #include "DebugPanel.hpp"
+#include "Simulation.hpp"
+#include "PerformanceMonitor.hpp"
 
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <iostream>
 
 int main()
 {
@@ -26,6 +28,17 @@ int main()
     );
 
     DebugPanel debugPanel("assets/COUR.ttf");
+
+    PerformanceMonitor performanceMonitor;
+
+    bool paused = false;
+    bool showDebugPanel = true;
+    bool benchmarking = false;
+
+    using Clock = std::chrono::steady_clock;
+
+    Clock::time_point benchmarkStart;
+    constexpr float benchmarkDuration = 10.f;
     
     sf::CircleShape agentShape(4.f);
     agentShape.setOrigin({ 4.f, 4.f });
@@ -62,11 +75,65 @@ int main()
         {
             if (event->is<sf::Event::Closed>())
                 window.close();
-        }
+            
+            if (const auto* key =
+                event->getIf<sf::Event::KeyPressed>())
+            {
+                switch (key->code)
+                {
+                case sf::Keyboard::Key::Num1:
+                    simulation.reset(100);
+                    performanceMonitor.reset();
+                    break;
 
-        simulation.update(
-            std::min(deltaTime, 0.05f)
-        );
+                case sf::Keyboard::Key::Num2:
+                    simulation.reset(500);
+                    performanceMonitor.reset();
+                    break;
+
+                case sf::Keyboard::Key::Num3:
+                    simulation.reset(1000);
+                    performanceMonitor.reset();
+                    break;
+
+                case sf::Keyboard::Key::Num4:
+                    simulation.reset(2500);
+                    performanceMonitor.reset();
+                    break;
+
+                case sf::Keyboard::Key::Num5:
+                    simulation.reset(5000);
+                    performanceMonitor.reset();
+                    break;
+
+                case sf::Keyboard::Key::Space:
+                    paused = !paused;
+                    break;
+
+                case sf::Keyboard::Key::F1:
+                    showDebugPanel = !showDebugPanel;
+                    break;
+
+                case sf::Keyboard::Key::B:
+                    benchmarking = true;
+                    benchmarkStart = Clock::now();
+                    performanceMonitor.reset();
+                    std::cout << "Benchmark started\n";
+                    break;
+
+                case sf::Keyboard::Key::Escape:
+                    window.close();
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+        if (!paused)
+        {
+            simulation.update(std::min(deltaTime, 0.05f));
+        }
 
         const auto renderStart = Clock::now();
 
@@ -125,9 +192,67 @@ int main()
                 renderEnd - renderStart
             ).count();
 
-        debugPanel.draw(window, stats);
+
+        performanceMonitor.recordFrame(
+            stats.frameTimeMs,
+            stats.simulationTimeMs,
+            stats.renderTimeMs
+        );
+
+        const PerformanceSummary summary =
+            performanceMonitor.getSummary();
+
+        stats.fps = summary.averageFps;
+        stats.frameTimeMs = summary.averageFrameMs;
+        stats.simulationTimeMs = summary.averageSimulationMs;
+        stats.renderTimeMs = summary.averageRenderMs;
+
+        if (showDebugPanel)
+        {
+            debugPanel.draw(window, stats);
+        }
+
+        if (benchmarking)
+        {
+            const float elapsed =
+                std::chrono::duration<float>(
+                    Clock::now() - benchmarkStart
+                ).count();
+
+            if (elapsed >= benchmarkDuration)
+            {
+                benchmarking = false;
+
+                const auto result =
+                    performanceMonitor.getSummary();
+
+                std::cout << "\n=== CrowdSim Benchmark ===\n";
+                std::cout << "Agents: "
+                    << simulation.getAgentCount() << '\n';
+
+                std::cout << "Frames: "
+                    << result.frames << '\n';
+
+                std::cout << "Average FPS: "
+                    << result.averageFps << '\n';
+
+                std::cout << "Average frame: "
+                    << result.averageFrameMs << " ms\n";
+
+                std::cout << "Average simulation: "
+                    << result.averageSimulationMs << " ms\n";
+
+                std::cout << "Average rendering: "
+                    << result.averageRenderMs << " ms\n";
+
+                std::cout << "Worst frame: "
+                    << result.worstFrameMs << " ms\n";
+            }
+        }
+
 
         window.display();
+
     }
 
     return 0;

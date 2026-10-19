@@ -15,12 +15,14 @@ add_executable(CrowdSim
     src/main.cpp
     src/Agent.cpp
     src/Agent.hpp
+    src/DebugStats.hpp
+    src/DebugPanel.cpp
+    src/DebugPanel.hpp
+    src/PerformanceMonitor.cpp
+    src/PerformanceMonitor.hpp
     src/Personality.hpp
     src/Simulation.hpp
     src/Simulation.cpp
-    src/DebugStats.hpp
-    src/DebugPanel.hpp
-    src/DebugPanel.cpp
 )
 
 target_link_libraries(CrowdSim PRIVATE

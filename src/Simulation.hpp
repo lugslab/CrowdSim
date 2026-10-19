@@ -20,6 +20,9 @@ public:
     const std::vector<sf::Vector2f>& getDestinations() const;
     const DebugStats& getStats() const;
 
+    void reset(std::size_t agentCount);
+    std::size_t getAgentCount() const;
+
 private:
     float m_width;
     float m_height;
@@ -34,5 +37,6 @@ private:
     sf::Vector2f randomPosition();
     sf::Vector2f randomDestination();
 
+    void initialiseAgents(std::size_t agentCount);
     void assignCompanions();
 };
