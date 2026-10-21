@@ -2,6 +2,7 @@
 #include "DebugPanel.hpp"
 
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
 DebugPanel::DebugPanel(const std::string& fontPath)
@@ -20,6 +21,7 @@ void DebugPanel::draw(
 )
 {
     if (!m_loaded)
+        std::cout << "DebugPanel font not loaded, cannot draw debug panel." << std::endl;
         return;
 
     sf::RectangleShape background({310.f, 260.f});

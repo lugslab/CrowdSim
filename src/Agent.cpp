@@ -7,7 +7,7 @@
 
 bool Agent::hasReachedDestination() const
 {
-    return (destination - position).length() < 12.f;
+    return (destination - position).length() < destinationTolerance;
 }
 
 void Agent::update(
@@ -49,14 +49,13 @@ sf::Vector2f Agent::calculateGoalVelocity() const {
     float distanceToDestination =
         toDestination.length();
 
-    constexpr float slowingRadius = 50.f;
-
     float desiredSpeed = personality.preferredSpeed;
 
-    if (distanceToDestination < slowingRadius)
+    if (distanceToDestination < goalApproachRadius)
     {
+        // slow down as we approach the destination.
         desiredSpeed *=
-            distanceToDestination / slowingRadius;
+            distanceToDestination / goalApproachRadius;
     }
 
     sf::Vector2f goalVelocity =
@@ -93,7 +92,7 @@ sf::Vector2f Agent::calculateAvoidanceVelocity(const vector<Agent>& neighbours, 
             personality.detectionRadius;
 
         if (distance < personality.personalSpace)
-            strength *= 3.f;
+            strength *= personalSpaceMultiplier;
 
         // combine avoidance vectors from all neighbours
         combinedAvoidance +=
@@ -103,7 +102,7 @@ sf::Vector2f Agent::calculateAvoidanceVelocity(const vector<Agent>& neighbours, 
     // weight response by personality and preferred speed
     sf::Vector2f avoidanceVelocity{ 0.f, 0.f };
     
-    if (combinedAvoidance.length() > 0.0001f)
+    if (!VectorUtils::isZero(combinedAvoidance))
     {
         avoidanceVelocity =
             VectorUtils::normalise(combinedAvoidance) *
@@ -129,7 +128,7 @@ sf::Vector2f Agent::calculateAttractionVelocity(const vector<Agent>& neighbours)
         float distance = toCompanion.length();
 
         // Follow only when sufficiently separated.
-        if (distance > 45.f)
+        if (distance > safeCompanionDistance)
         {
             // weight response by personality and preferred speed
             attractionVelocity =
@@ -165,7 +164,7 @@ void Agent::applyAcceleration(sf::Vector2f targetVelocity, float deltaTime) {
 void Agent::clampSpeed() {
     // Limit maximum speed to 1.5 times the preferred speed.
     float speed = velocity.length();
-    float maxSpeed = personality.preferredSpeed * 1.5f;
+    float maxSpeed = personality.preferredSpeed * maxSpeedMultiplier;
     if (speed > maxSpeed)
     {
         velocity = VectorUtils::normalise(velocity) * maxSpeed;
@@ -176,13 +175,11 @@ void Agent::move(float width, float height, float deltaTime) {
     // update position after deltaTime seconds
     position += velocity * deltaTime;
     // limit movement to within the bounds of the simulation area
-    constexpr float radius = 4.f;
-
     position.x = clamp(
-        position.x, radius, width - radius
+        position.x, agentRadius, width - agentRadius
     );
 
     position.y = clamp(
-        position.y, radius, height - radius
+        position.y, agentRadius, height - agentRadius
     );
 }

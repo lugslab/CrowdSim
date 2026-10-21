@@ -34,3 +34,29 @@ TEST(VectorUtilsTests, NormaliseZeroVector)
     EXPECT_FLOAT_EQ(normalised.x, 0.f);
     EXPECT_FLOAT_EQ(normalised.y, 0.f);
 }
+
+TEST(VectorUtilsTests, IsZeroRecognisesZeroVector)
+{
+    EXPECT_TRUE(VectorUtils::isZero({ 0.f, 0.f }));
+}
+
+TEST(VectorUtilsTests, IsZeroRecognisesVectorsInsideEpsilon)
+{
+    EXPECT_TRUE(VectorUtils::isZero({ 0.000099f, 0.f }));
+    EXPECT_TRUE(VectorUtils::isZero({ -0.000099f, 0.f }));
+    EXPECT_TRUE(VectorUtils::isZero({ 0.00005f, 0.00005f }));
+}
+
+TEST(VectorUtilsTests, IsZeroRejectsVectorAtEpsilon)
+{
+    EXPECT_FALSE(VectorUtils::isZero({ 0.0001f, 0.f }));
+    EXPECT_FALSE(VectorUtils::isZero({ -0.0001f, 0.f }));
+}
+
+TEST(VectorUtilsTests, IsZeroRejectsVectorsOutsideEpsilon)
+{
+    EXPECT_FALSE(VectorUtils::isZero({ 0.000101f, 0.f }));
+    EXPECT_FALSE(VectorUtils::isZero({ 0.f, -0.000101f }));
+    EXPECT_FALSE(VectorUtils::isZero({ 1.f, 1.f }));
+}
+

@@ -13,4 +13,10 @@ namespace VectorUtils
 
         return v / magnitude;
     }
+
+    inline bool isZero(sf::Vector2f v)
+    {
+        constexpr float epsilon = 0.0001f;
+        return v.lengthSquared() < epsilon * epsilon;
+    }
 }
