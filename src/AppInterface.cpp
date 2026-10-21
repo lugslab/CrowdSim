@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <iostream>
 
@@ -6,17 +7,76 @@
 
 #include "AppInterface.hpp"
 
+using Clock = std::chrono::steady_clock;
+
+namespace
+{
+    // helper functions to calculate elapsed time
+    float elapsedMilliseconds(
+        const Clock::time_point& start,
+        const Clock::time_point& end
+    )
+    {
+        return std::chrono::duration<float, std::milli>(end - start).count();
+    }
+
+    float elapsedSeconds(
+        const Clock::time_point& start,
+        const Clock::time_point& end
+    )
+    {
+        return std::chrono::duration<float>(end - start).count();
+    }
+
+
+}
+
+namespace Cfg
+{
+    // application constants
+    namespace AgentColour
+    {
+        static const sf::Color Cautious{ 96, 165, 250 };
+        static const sf::Color Impatient{ 251, 146, 60 };
+        static const sf::Color Sociable{ 74, 222, 128 };
+        static const sf::Color Independent{ 192, 132, 252 };
+    }
+
+    namespace Destination
+    {
+        static const sf::Color Fill{ 70, 200, 130, 50 };
+        static const sf::Color Outline{ 70, 200, 130 };
+        static constexpr float Radius = 12.f;
+        static constexpr float Thickness = 2.f;
+    }
+
+    namespace Benchmark
+    {
+        static constexpr float Duration = 10.f;
+        static constexpr float MaxDeltaTime = 0.05f;
+        constexpr std::array<int, 5> AgentCounts{
+            100, 500, 1000, 2500, 5000
+        };
+    }
+
+    namespace Window
+    {
+        static constexpr sf::Vector2u Size{ 1000, 700 };
+        static const sf::Color BgColour{ 25, 28, 35 };
+    }
+}
+
 AppInterface::AppInterface()
 // Initialise the SFML window
     : window(
-        sf::VideoMode({ windowSize.x, windowSize.y }),
+        sf::VideoMode({ Cfg::Window::Size.x, Cfg::Window::Size.y }),
         "CrowdSim - Debug Panel"
     )
 
     // Initialise the simulation using window dimensions
     , simulation(
-        static_cast<float>(windowSize.x),
-        static_cast<float>(windowSize.y)
+        static_cast<float>(Cfg::Window::Size.x),
+        static_cast<float>(Cfg::Window::Size.y)
     )
 
     // Initialise the debug panel with its font path
@@ -32,7 +92,6 @@ AppInterface::AppInterface()
 
 void AppInterface::runEventLoop()
 {
-    using Clock = std::chrono::steady_clock;
 
     auto previousFrame = Clock::now();
 
@@ -40,10 +99,7 @@ void AppInterface::runEventLoop()
     {
         const auto frameStart = Clock::now();
 
-        float deltaTime =
-            std::chrono::duration<float>(
-                frameStart - previousFrame
-            ).count();
+        float deltaTime = elapsedSeconds(previousFrame, frameStart);
 
         previousFrame = frameStart;
 
@@ -60,10 +116,10 @@ void AppInterface::runEventLoop()
         }
         if (!paused)
         {
-            simulation.update(std::min(deltaTime, 0.05f));
+            simulation.update(std::min(deltaTime, Cfg::Benchmark::MaxDeltaTime));
         }
 
-        DebugStats stats = gatherStats(deltaTime, frameStart);
+        DebugStats stats = gatherStats(deltaTime);
 
         renderFrame(deltaTime, stats);
 
@@ -77,27 +133,27 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
     switch (key->code)
     {
     case sf::Keyboard::Key::Num1:
-        simulation.reset(100);
+        simulation.reset(Cfg::Benchmark::AgentCounts[0]);
         performanceMonitor.reset();
         break;
 
     case sf::Keyboard::Key::Num2:
-        simulation.reset(500);
+        simulation.reset(Cfg::Benchmark::AgentCounts[1]);
         performanceMonitor.reset();
         break;
 
     case sf::Keyboard::Key::Num3:
-        simulation.reset(1000);
+        simulation.reset(Cfg::Benchmark::AgentCounts[2]);
         performanceMonitor.reset();
         break;
 
     case sf::Keyboard::Key::Num4:
-        simulation.reset(2500);
+        simulation.reset(Cfg::Benchmark::AgentCounts[3]);
         performanceMonitor.reset();
         break;
 
     case sf::Keyboard::Key::Num5:
-        simulation.reset(5000);
+        simulation.reset(Cfg::Benchmark::AgentCounts[4]);
         performanceMonitor.reset();
         break;
 
@@ -125,7 +181,7 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
     }
 }
 
-DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_clock::time_point& renderStart) {
+DebugStats AppInterface::gatherStats(float deltaTime) {
     DebugStats stats = simulation.getStats();
 
     stats.frameTimeMs = deltaTime * 1000.f;
@@ -133,10 +189,7 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
     if (deltaTime > 0.f)
         stats.fps = 1.f / deltaTime;
 
-    stats.renderTimeMs =
-        std::chrono::duration<float, std::milli>(
-            renderEnd - renderStart
-        ).count();
+    stats.renderTimeMs = elapsedMilliseconds(renderStart, renderEnd);
 
 
     performanceMonitor.recordFrame(
@@ -155,12 +208,9 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
 
     if (benchmarking)
     {
-        const float elapsed =
-            std::chrono::duration<float>(
-                Clock::now() - benchmarkStart
-            ).count();
+        const float elapsed = elapsedSeconds(benchmarkStart, Clock::now());
 
-        if (elapsed >= benchmarkDuration) {
+        if (elapsed >= Cfg::Benchmark::Duration) {
             // stop benchmarking and write results
             benchmarking = false;
             writeBenchmark();
@@ -199,9 +249,9 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
 
 
     void AppInterface::renderFrame(float deltaTime, const DebugStats& stats) {
-        const auto renderStart = Clock::now();
+        renderStart = Clock::now();
 
-        window.clear(sf::Color(25, 28, 35));
+        window.clear(Cfg::Window::BgColour);
 
         drawDestinations();
 
@@ -212,7 +262,7 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
             debugPanel.draw(window, stats);
         }
 
-        const auto renderEnd = Clock::now();
+        renderEnd = Clock::now();
     }
 
     void AppInterface::drawDestinations() {
@@ -229,12 +279,15 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
 
     sf::CircleShape AppInterface::getDestinationShape() const
     {
-        sf::CircleShape destinationShape(12.f);
+        sf::CircleShape destinationShape(Cfg::Destination::Radius);
 
-        destinationShape.setOrigin({ 12.f, 12.f });
-        destinationShape.setFillColor(sf::Color(70, 200, 130, 50));
-        destinationShape.setOutlineColor(sf::Color(70, 200, 130));
-        destinationShape.setOutlineThickness(2.f);
+        destinationShape.setOrigin({ 
+            Cfg::Destination::Radius,
+            Cfg::Destination::Radius
+        });
+        destinationShape.setFillColor(Cfg::Destination::Fill);
+        destinationShape.setOutlineColor(Cfg::Destination::Outline);
+        destinationShape.setOutlineThickness(Cfg::Destination::Thickness);
 
         return destinationShape;
     }
@@ -249,29 +302,18 @@ DebugStats AppInterface::gatherStats(float deltaTime, const std::chrono::steady_
         for (const auto& agent :
             simulation.getAgents())
         {
+            // default to independent colour, override for other personality types
+            auto colour = Cfg::AgentColour::Independent;
             switch (agent.personality.type)
             {
             case PersonalityType::Cautious:
-                agentShape.setFillColor(
-                    sf::Color(96, 165, 250));
-                break;
-
+                colour = Cfg::AgentColour::Cautious; break;
             case PersonalityType::Impatient:
-                agentShape.setFillColor(
-                    sf::Color(251, 146, 60));
-                break;
-
+                colour = Cfg::AgentColour::Impatient; break;
             case PersonalityType::Sociable:
-                agentShape.setFillColor(
-                    sf::Color(74, 222, 128));
-                break;
-
-            case PersonalityType::Independent:
-                agentShape.setFillColor(
-                    sf::Color(192, 132, 252));
-                break;
+                colour = Cfg::AgentColour::Sociable; break;
             }
-
+            agentShape.setFillColor(colour);
             agentShape.setPosition(agent.position);
             window.draw(agentShape);
         }

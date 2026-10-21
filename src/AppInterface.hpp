@@ -14,9 +14,6 @@ public:
 
     void runEventLoop();
 private:
-    static constexpr sf::Vector2u windowSize{ 1000, 700 };
-    static constexpr float benchmarkDuration = 10.f;
-
     sf::RenderWindow window;
 
     Simulation simulation;
@@ -34,7 +31,7 @@ private:
     Clock::time_point renderEnd;
 
     void handleKeyPressed(const sf::Event::KeyPressed* key);
-    DebugStats gatherStats(float deltaTime, const std::chrono::steady_clock::time_point& renderStart);
+    DebugStats gatherStats(float deltaTime);
     void writeBenchmark();
     void renderFrame(float deltaTime, const DebugStats& stats);
     void drawDestinations();
