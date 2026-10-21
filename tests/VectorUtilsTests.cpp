@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "VectorUtils.hpp"
 
-TEST(VectorUtilsTets, NormaliseNonZeroCalculations)
+TEST(VectorUtilsTests, NormaliseNonZeroCalculations)
 {
     sf::Vector2f vector_a(200.f, 0.f);
 
@@ -25,7 +25,7 @@ TEST(VectorUtilsTets, NormaliseNonZeroCalculations)
     EXPECT_FLOAT_EQ(normalised_c.y, 0.70710677f);
 }
 
-TEST(VectorUtilsTets, NormaliseZeroVector)
+TEST(VectorUtilsTests, NormaliseZeroVector)
 {
     sf::Vector2f vector(0.f, 0.f);
 

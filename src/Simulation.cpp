@@ -147,7 +147,6 @@ void Simulation::update(float deltaTime)
         m_agents[i].update(
             deltaTime,
             snapshot,
-            i,
             m_width,
             m_height,
             m_stats.neighbourChecks,
