@@ -2,42 +2,26 @@
 #include <chrono>
 #include <random>
 
+#include "Area.hpp"
 #include "Simulation.hpp"
 
 
 namespace Cfg {
     static constexpr float DestinationOffset = 100.f;
+    static constexpr float CompanionOffset = 12.f;
     static constexpr std::size_t AgentCount = 100;
 }
 
-Simulation::Simulation(float width, float height)
-    : m_width(width),
-    m_height(height),
-    m_rng(std::random_device{}())
+Simulation::Simulation()
+    : m_rng(std::random_device{}())
 {
-    m_destinations = placeDestinations(width, height, Cfg::DestinationOffset);
+    m_destinations = Area::placeDestinations(Cfg::DestinationOffset);
 
     initialiseAllAgents(Cfg::AgentCount);
 
     assignCompanions();
 }
 
-std::vector<sf::Vector2f> Simulation::placeDestinations(float width, float height, float offset)
-{
-    const float top = offset;
-    const float bottom = height - offset;
-    const float left = offset;
-    const float right = width - offset;
-
-    return {
-        {left, top},
-        {left, bottom},
-        {right, top},
-        {right, bottom},
-        // centre
-        {width / 2.f, height / 2.f}
-    };
-}
 
 void Simulation::initialiseAllAgents(std::size_t agentCount)
 {
@@ -78,11 +62,11 @@ std::size_t Simulation::getAgentCount() const
 sf::Vector2f Simulation::randomPosition()
 {
     std::uniform_real_distribution<float> xDist(
-        Agent::agentRadius, m_width - Agent::agentRadius
+        Agent::agentRadius, Area::getWidth() - Agent::agentRadius
     );
 
     std::uniform_real_distribution<float> yDist(
-        Agent::agentRadius, m_height - Agent::agentRadius
+        Agent::agentRadius, Area::getHeight() - Agent::agentRadius
     );
 
     return { xDist(m_rng), yDist(m_rng) };
@@ -142,16 +126,13 @@ void Simulation::joinCompanions(std::size_t index_a, std::size_t index_b)
     // Start companions close together.
    agent_b.position =
         agent_a.position +
-        sf::Vector2f{ 12.f, 12.f };
+       sf::Vector2f{ Cfg::CompanionOffset, Cfg::CompanionOffset };
 
     // Keep the second agent inside the area.
-    agent_b.position.x = std::min(
-        agent_b.position.x, m_width - Agent::agentRadius
-    );
-
-    agent_b.position.y = std::min(
-        agent_b.position.y, m_height - Agent::agentRadius
-    );
+   Area::moveWithinBounds(
+       agent_b.position,
+       Agent::agentRadius
+   );
 }
 
 void Simulation::update(float deltaTime)
@@ -178,8 +159,6 @@ void Simulation::updateAgents(float deltaTime)
         m_agents[i].update(
             deltaTime,
             snapshot,
-            m_width,
-            m_height,
             m_stats.neighbourChecks,
             m_stats.neighbourInteractions
         );

@@ -210,7 +210,7 @@ TEST(AgentTests, MoveKeepsAgentInsideSimulationBounds)
     agent.position = { 10.f, 10.f };
     agent.velocity = { -100.f, -100.f };
 
-    agent.move(100.f, 80.f, 1.f);
+    agent.move(1.f);
 
     expectVectorNear(agent.position, { 4.f, 4.f });
 }
@@ -218,12 +218,12 @@ TEST(AgentTests, MoveKeepsAgentInsideSimulationBounds)
 TEST(AgentTests, MoveClampsAgentToMaximumBounds)
 {
     Agent agent;
-    agent.position = { 90.f, 70.f };
+    agent.position = { 990.f, 650.f };
     agent.velocity = { 100.f, 100.f };
 
-    agent.move(100.f, 80.f, 1.f);
+    agent.move(1.f);
 
-    expectVectorNear(agent.position, { 96.f, 76.f });
+    expectVectorNear(agent.position, { 996.f, 696.f });
 }
 
 TEST(AgentTests, UpdateMovesAgentTowardDestination)
@@ -239,8 +239,6 @@ TEST(AgentTests, UpdateMovesAgentTowardDestination)
     agent.update(
         0.1f,
         {},
-        800.f,
-        600.f,
         neighbourChecks,
         neighbourInteractions);
 

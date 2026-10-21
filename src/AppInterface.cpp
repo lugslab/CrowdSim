@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "AppInterface.hpp"
+#include "Area.hpp"
 
 using Clock = std::chrono::steady_clock;
 
@@ -60,7 +61,6 @@ namespace Cfg
 
     namespace Window
     {
-        static constexpr sf::Vector2u Size{ 1000, 700 };
         static const sf::Color BackgroundColour{ 25, 28, 35 };
         static constexpr float MaxDeltaTime = 0.05f;
     }
@@ -69,14 +69,8 @@ namespace Cfg
 AppInterface::AppInterface()
 // Initialise the SFML window
     : window(
-        sf::VideoMode({ Cfg::Window::Size.x, Cfg::Window::Size.y }),
+        sf::VideoMode({ Area::getWidth(), Area::getHeight() }),
         "CrowdSim - Debug Panel"
-    )
-
-    // Initialise the simulation using window dimensions
-    , simulation(
-        static_cast<float>(Cfg::Window::Size.x),
-        static_cast<float>(Cfg::Window::Size.y)
     )
 
     // Initialise the debug panel with its font path

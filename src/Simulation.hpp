@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Agent.hpp"
@@ -6,6 +5,8 @@
 
 #include <SFML/System/Vector2.hpp>
 
+#include <chrono>
+#include <cstddef>
 #include <random>
 #include <vector>
 
@@ -14,7 +15,7 @@ using Clock = std::chrono::steady_clock;
 class Simulation
 {
 public:
-    Simulation(float width, float height);
+    Simulation();
 
     void update(float deltaTime);
 
@@ -25,10 +26,7 @@ public:
     void reset(std::size_t agentCount);
     std::size_t getAgentCount() const;
 
-private:
-    float m_width;
-    float m_height;
-    
+private:    
     DebugStats m_stats;
 
     std::vector<Agent> m_agents;
@@ -38,8 +36,6 @@ private:
 
     sf::Vector2f randomPosition();
     sf::Vector2f randomDestination();
-
-    std::vector<sf::Vector2f> placeDestinations(float width, float height, float offset);
 
     void initialiseAllAgents(std::size_t agentCount);
     Agent initialiseAgent(std::size_t index);

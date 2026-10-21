@@ -27,8 +27,6 @@ public:
     void update(
         float deltaTime,
         const std::vector<Agent>& neighbours,
-        float width,
-        float height,
         std::size_t& neighbourChecks,
         std::size_t& neighbourInteractions
     );
@@ -48,7 +46,7 @@ private:
     sf::Vector2f resolveTargetVelocity(sf::Vector2f goalVelocity, sf::Vector2f proximityAvoidance, sf::Vector2f socialAttraction);
     void applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
     void clampSpeed();
-    void move(float width, float height, float deltaTime);
+    void move(float deltaTime);
 
     // provide access for tests
     // TODO re-evaluate code structure and testing approach

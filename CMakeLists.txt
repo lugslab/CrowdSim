@@ -48,6 +48,8 @@ FetchContent_MakeAvailable(googletest)
 add_library(CrowdSimCore STATIC
     src/Agent.cpp
     src/Agent.hpp
+    src/Area.cpp
+    src/Area.hpp
     src/AppInterface.cpp
     src/AppInterface.hpp
     src/DebugPanel.cpp

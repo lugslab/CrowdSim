@@ -1,4 +1,5 @@
 #include "Agent.hpp"
+#include "Area.hpp"
 #include "VectorUtils.hpp"
 
 #include <algorithm>
@@ -11,8 +12,6 @@ bool Agent::hasReachedDestination() const
 void Agent::update(
     float deltaTime,
     const std::vector<Agent>& neighbours,
-    float width,
-    float height,
     std::size_t& neighbourChecks,
     std::size_t& neighbourInteractions
 )
@@ -36,7 +35,7 @@ void Agent::update(
     // Limit maximum speed.
     clampSpeed();
 
-    move(width, height, deltaTime);
+    move(deltaTime);
 }
 
 sf::Vector2f Agent::calculateGoalVelocity() const {
@@ -169,15 +168,9 @@ void Agent::clampSpeed() {
     }
 }
 
-void Agent::move(float width, float height, float deltaTime) {
+void Agent::move(float deltaTime) {
     // update position after deltaTime seconds
     position += velocity * deltaTime;
     // limit movement to within the bounds of the simulation area
-    position.x = std::clamp(
-        position.x, agentRadius, width - agentRadius
-    );
-
-    position.y = std::clamp(
-        position.y, agentRadius, height - agentRadius
-    );
+    Area::moveWithinBounds(position, agentRadius);
 }
