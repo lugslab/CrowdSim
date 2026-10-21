@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <iosfwd>
 #include <string>
 
 class DebugPanel

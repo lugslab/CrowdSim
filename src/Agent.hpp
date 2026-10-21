@@ -8,8 +8,6 @@
 #include <cstddef>
 #include <vector>
 
-using namespace std;
-
 class Agent
 {
 public:
@@ -28,11 +26,11 @@ public:
 
     void update(
         float deltaTime,
-        const vector<Agent>& neighbours,
+        const std::vector<Agent>& neighbours,
         float width,
         float height,
-        size_t& neighbourChecks,
-        size_t& neighbourInteractions
+        std::size_t& neighbourChecks,
+        std::size_t& neighbourInteractions
     );
 
     bool hasReachedDestination() const;
@@ -45,8 +43,8 @@ private:
     static constexpr float maxSpeedMultiplier = 1.5f;
    
     sf::Vector2f calculateGoalVelocity() const;
-    sf::Vector2f calculateAvoidanceVelocity(const vector<Agent>& neighbours, size_t& neighbourChecks, size_t& neighbourInteractions);
-    sf::Vector2f calculateAttractionVelocity(const vector<Agent>& neighbours);
+    sf::Vector2f calculateAvoidanceVelocity(const std::vector<Agent>& neighbours, std::size_t& neighbourChecks, std::size_t& neighbourInteractions);
+    sf::Vector2f calculateAttractionVelocity(const std::vector<Agent>& neighbours);
     sf::Vector2f resolveTargetVelocity(sf::Vector2f goalVelocity, sf::Vector2f proximityAvoidance, sf::Vector2f socialAttraction);
     void applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
     void clampSpeed();

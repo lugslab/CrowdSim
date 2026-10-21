@@ -1,13 +1,11 @@
+
+#include <chrono>
+
 #include <SFML/Graphics.hpp>
 
 #include "DebugPanel.hpp"
 #include "Simulation.hpp"
 #include "PerformanceMonitor.hpp"
-
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <iostream>
 
 class AppInterface 
 {

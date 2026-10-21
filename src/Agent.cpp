@@ -1,9 +1,7 @@
-
 #include "Agent.hpp"
 #include "VectorUtils.hpp"
 
 #include <algorithm>
-#include <cmath>
 
 bool Agent::hasReachedDestination() const
 {
@@ -12,11 +10,11 @@ bool Agent::hasReachedDestination() const
 
 void Agent::update(
     float deltaTime,
-    const vector<Agent>& neighbours,
+    const std::vector<Agent>& neighbours,
     float width,
     float height,
-    size_t& neighbourChecks,
-    size_t& neighbourInteractions
+    std::size_t& neighbourChecks,
+    std::size_t& neighbourInteractions
 )
 {
     // Identify competing influences.
@@ -65,10 +63,10 @@ sf::Vector2f Agent::calculateGoalVelocity() const {
     return goalVelocity;
 }
 
-sf::Vector2f Agent::calculateAvoidanceVelocity(const vector<Agent>& neighbours, size_t& neighbourChecks, size_t& neighbourInteractions) {
+sf::Vector2f Agent::calculateAvoidanceVelocity(const std::vector<Agent>& neighbours, std::size_t& neighbourChecks, std::size_t& neighbourInteractions) {
     sf::Vector2f combinedAvoidance{ 0.f, 0.f };
 
-    for (size_t i = 0; i < neighbours.size(); ++i)
+    for (std::size_t i = 0; i < neighbours.size(); ++i)
     {
         // count the number of neighbour checks for performance analysis
         ++neighbourChecks;
@@ -112,11 +110,11 @@ sf::Vector2f Agent::calculateAvoidanceVelocity(const vector<Agent>& neighbours, 
     return avoidanceVelocity;
 }
 
-sf::Vector2f Agent::calculateAttractionVelocity(const vector<Agent>& neighbours) {
+sf::Vector2f Agent::calculateAttractionVelocity(const std::vector<Agent>& neighbours) {
     sf::Vector2f attractionVelocity{ 0.f, 0.f };
 
     if (companionIndex >= 0 &&
-        static_cast<size_t>(companionIndex) <
+        static_cast<std::size_t>(companionIndex) <
         neighbours.size())
     {
         const Agent& companion =
@@ -175,11 +173,11 @@ void Agent::move(float width, float height, float deltaTime) {
     // update position after deltaTime seconds
     position += velocity * deltaTime;
     // limit movement to within the bounds of the simulation area
-    position.x = clamp(
+    position.x = std::clamp(
         position.x, agentRadius, width - agentRadius
     );
 
-    position.y = clamp(
+    position.y = std::clamp(
         position.y, agentRadius, height - agentRadius
     );
 }

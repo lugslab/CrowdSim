@@ -1,9 +1,8 @@
+#include <algorithm>
+#include <chrono>
+#include <random>
 
 #include "Simulation.hpp"
-
-#include <chrono>
-#include <cmath>
-#include <random>
 
 Simulation::Simulation(float width, float height)
     : m_width(width),

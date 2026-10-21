@@ -1,10 +1,10 @@
-#include <SFML/Graphics.hpp>
-
-#include "AppInterface.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+
+#include <SFML/Graphics.hpp>
+
+#include "AppInterface.hpp"
 
 AppInterface::AppInterface()
 // Initialise the SFML window
