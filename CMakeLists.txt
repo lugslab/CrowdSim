@@ -48,6 +48,10 @@ FetchContent_MakeAvailable(googletest)
 add_library(CrowdSimCore STATIC
     src/Agent.cpp
     src/Agent.hpp
+    src/AppInterface.cpp
+    src/AppInterface.hpp
+    src/DebugPanel.cpp
+    src/DebugPanel.hpp
     src/DebugStats.hpp
     src/PerformanceMonitor.cpp
     src/PerformanceMonitor.hpp
@@ -72,8 +76,6 @@ target_link_libraries(CrowdSimCore PUBLIC
 
 add_executable(CrowdSim
     src/main.cpp
-    src/DebugPanel.cpp
-    src/DebugPanel.hpp
 )
 
 target_link_libraries(CrowdSim PRIVATE

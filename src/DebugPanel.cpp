@@ -24,7 +24,6 @@ void DebugPanel::draw(
 ) const
 {
     if (!m_loaded) {
-        std::cout << "DebugPanel font not loaded, cannot draw debug panel." << std::endl;
         return;
     }
     
