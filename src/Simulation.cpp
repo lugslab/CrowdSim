@@ -4,53 +4,68 @@
 
 #include "Simulation.hpp"
 
+
+namespace Cfg {
+    static constexpr float DestinationOffset = 100.f;
+    static constexpr std::size_t AgentCount = 100;
+}
+
 Simulation::Simulation(float width, float height)
     : m_width(width),
     m_height(height),
     m_rng(std::random_device{}())
 {
-    m_destinations = {
-        {100.f, 100.f},
-        {width - 100.f, 100.f},
-        {width - 100.f, height - 100.f},
-        {100.f, height - 100.f},
-        {width / 2.f, height / 2.f}
-    };
+    m_destinations = placeDestinations(width, height, Cfg::DestinationOffset);
 
-    constexpr int agentCount = 100;
-
-    m_agents.reserve(agentCount);
-
-    initialiseAgents(100);
+    initialiseAllAgents(Cfg::AgentCount);
 
     assignCompanions();
 }
 
-void Simulation::initialiseAgents(std::size_t agentCount)
+std::vector<sf::Vector2f> Simulation::placeDestinations(float width, float height, float offset)
+{
+    const float top = offset;
+    const float bottom = height - offset;
+    const float left = offset;
+    const float right = width - offset;
+
+    return {
+        {left, top},
+        {left, bottom},
+        {right, top},
+        {right, bottom},
+        // centre
+        {width / 2.f, height / 2.f}
+    };
+}
+
+void Simulation::initialiseAllAgents(std::size_t agentCount)
 {
     m_agents.clear();
     m_agents.reserve(agentCount);
 
     for (std::size_t i = 0; i < agentCount; ++i)
     {
-        Agent agent;
-
-        agent.position = randomPosition();
-        agent.destination = randomDestination();
-
-        const auto type = static_cast<PersonalityType>(i % 4);
-
-        agent.personality = Personality::create(type);
-
-        m_agents.push_back(agent);
+        m_agents.push_back(initialiseAgent(i));
     }
+}
 
-    assignCompanions();
+Agent Simulation::initialiseAgent(std::size_t index) {
+    Agent agent;
+
+    agent.position = randomPosition();
+    agent.destination = randomDestination();
+
+    const auto type = static_cast<PersonalityType>(index % 4);
+
+    agent.personality = Personality::create(type);
+
+    return agent;
 }
 
 void Simulation::reset(std::size_t agentCount)
 {
-    initialiseAgents(agentCount);
+    initialiseAllAgents(agentCount);
     m_stats = DebugStats{};
     m_stats.agentCount = m_agents.size();
 }
@@ -63,11 +78,11 @@ std::size_t Simulation::getAgentCount() const
 sf::Vector2f Simulation::randomPosition()
 {
     std::uniform_real_distribution<float> xDist(
-        10.f, m_width - 10.f
+        Agent::agentRadius, m_width - Agent::agentRadius
     );
 
     std::uniform_real_distribution<float> yDist(
-        10.f, m_height - 10.f
+        Agent::agentRadius, m_height - Agent::agentRadius
     );
 
     return { xDist(m_rng), yDist(m_rng) };
@@ -84,8 +99,19 @@ sf::Vector2f Simulation::randomDestination()
 
 void Simulation::assignCompanions()
 {
-    std::vector<std::size_t> sociableIndices;
+    std::vector<std::size_t> sociableIndices = filterSociableAgentIndices();
+    for (std::size_t i = 0; i + 1 < sociableIndices.size(); i += 2)
+    {
+        joinCompanions(
+            sociableIndices[i],
+            sociableIndices[i + 1]
+        );
+    }
+}
 
+std::vector<std::size_t> Simulation::filterSociableAgentIndices()
+{
+    std::vector<std::size_t> sociableIndices;
     for (std::size_t i = 0; i < m_agents.size(); ++i)
     {
         if (m_agents[i].personality.type ==
@@ -94,50 +120,56 @@ void Simulation::assignCompanions()
             sociableIndices.push_back(i);
         }
     }
+    return sociableIndices;
+}
 
-    // Pair sociable agents.
-    for (std::size_t i = 0;
-        i + 1 < sociableIndices.size();
-        i += 2)
-    {
-        std::size_t a = sociableIndices[i];
-        std::size_t b = sociableIndices[i + 1];
+void Simulation::joinCompanions(std::size_t index_a, std::size_t index_b)
+{
+    // Pair sociable agents
+    auto& agent_a = m_agents[index_a];
+    auto& agent_b = m_agents[index_b];
 
-        m_agents[a].companionIndex =
-            static_cast<int>(b);
+    agent_a.companionIndex =
+        static_cast<int>(index_b);
 
-        m_agents[b].companionIndex =
-            static_cast<int>(a);
+    agent_b.companionIndex =
+        static_cast<int>(index_a);
 
-        // Give both agents the same destination.
-        m_agents[b].destination =
-            m_agents[a].destination;
+    // Give both agents the same destination.
+    agent_b.destination =
+        agent_a.destination;
 
-        // Start companions close together.
-        m_agents[b].position =
-            m_agents[a].position +
-            sf::Vector2f{ 12.f, 12.f };
+    // Start companions close together.
+   agent_b.position =
+        agent_a.position +
+        sf::Vector2f{ 12.f, 12.f };
 
-        // Keep the second agent inside the area.
-        m_agents[b].position.x = std::min(
-            m_agents[b].position.x, m_width - 4.f
-        );
+    // Keep the second agent inside the area.
+    agent_b.position.x = std::min(
+        agent_b.position.x, m_width - Agent::agentRadius
+    );
 
-        m_agents[b].position.y = std::min(
-            m_agents[b].position.y, m_height - 4.f
-        );
-    }
+    agent_b.position.y = std::min(
+        agent_b.position.y, m_height - Agent::agentRadius
+    );
 }
 
 void Simulation::update(float deltaTime)
 {
-    using Clock = std::chrono::steady_clock;
 
-    const auto start = Clock::now();
+    const auto simulation_start = Clock::now();
 
     // Reset per-update counters.
     m_stats.neighbourChecks = 0;
     m_stats.neighbourInteractions = 0;
+
+    updateAgents(deltaTime);
+    updateAgentDestinations();
+    updateStats(simulation_start);
+}
+
+void Simulation::updateAgents(float deltaTime)
+{
 
     const std::vector<Agent> snapshot = m_agents;
 
@@ -152,6 +184,11 @@ void Simulation::update(float deltaTime)
             m_stats.neighbourInteractions
         );
     }
+
+}
+
+void Simulation::updateAgentDestinations()
+{
 
     // Update destinations after all agents have moved.
     for (std::size_t i = 0; i < m_agents.size(); ++i)
@@ -190,6 +227,10 @@ void Simulation::update(float deltaTime)
             agent.destination = randomDestination();
         }
     }
+}
+
+void Simulation::updateStats(Clock::time_point start)
+{
     m_stats.agentCount = m_agents.size();
     m_stats.personalityCounts.fill(0);
 

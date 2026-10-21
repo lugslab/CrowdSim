@@ -9,6 +9,8 @@
 #include <random>
 #include <vector>
 
+using Clock = std::chrono::steady_clock;
+
 class Simulation
 {
 public:
@@ -37,6 +39,15 @@ private:
     sf::Vector2f randomPosition();
     sf::Vector2f randomDestination();
 
-    void initialiseAgents(std::size_t agentCount);
+    std::vector<sf::Vector2f> placeDestinations(float width, float height, float offset);
+
+    void initialiseAllAgents(std::size_t agentCount);
+    Agent initialiseAgent(std::size_t index);
     void assignCompanions();
+    std::vector<std::size_t> filterSociableAgentIndices();
+    void joinCompanions(std::size_t index_a, std::size_t index_b);
+
+    void updateAgents(float deltaTime);
+    void updateAgentDestinations();
+    void updateStats(Clock::time_point simulation_start);
 };
