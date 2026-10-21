@@ -7,6 +7,8 @@
 #include "Simulation.hpp"
 #include "PerformanceMonitor.hpp"
 
+using Clock = std::chrono::steady_clock;
+
 class AppInterface 
 {
 public:
@@ -25,7 +27,6 @@ private:
     bool showDebugPanel = true;
     bool benchmarking = false;
 
-    using Clock = std::chrono::steady_clock;
     Clock::time_point benchmarkStart;
     Clock::time_point renderStart;
     Clock::time_point renderEnd;
