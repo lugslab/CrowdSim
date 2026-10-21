@@ -22,6 +22,23 @@ find_package(SFML 3 COMPONENTS Graphics Window System
     CONFIG REQUIRED
 )
 
+# ============================================================
+# Dependencies - Google Test
+# ============================================================
+
+include(FetchContent)
+
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+
+# Ensure Google Test uses the same MSVC runtime library.
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(googletest)
+
 
 # ============================================================
 # Core simulation library
@@ -46,6 +63,7 @@ target_include_directories(CrowdSimCore PUBLIC
 
 target_link_libraries(CrowdSimCore PUBLIC
     SFML::Graphics
+    GTest::gtest
 )
 
 
@@ -91,24 +109,6 @@ add_custom_command(TARGET CrowdSim POST_BUILD
     COMMENT "Copying CrowdSim assets"
     VERBATIM
 )
-
-
-# ============================================================
-# Dependencies - Google Test
-# ============================================================
-
-include(FetchContent)
-
-FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-
-# Ensure Google Test uses the same MSVC runtime library.
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-FetchContent_MakeAvailable(googletest)
 
 
 # ============================================================

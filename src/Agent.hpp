@@ -2,6 +2,7 @@
 
 #include "Personality.hpp"
 
+#include <gtest/gtest_prod.h>
 #include <SFML/System/Vector2.hpp>
 
 #include <cstddef>
@@ -50,4 +51,20 @@ private:
     void applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
     void clampSpeed();
     void move(float width, float height, float deltaTime);
+
+    // provide access for tests
+    // TODO re-evaluate code structure and testing approach
+    FRIEND_TEST(AgentTests, GoalVelocityPointsTowardDestination);
+    FRIEND_TEST(AgentTests, GoalVelocitySlowsDownNearDestination);
+    FRIEND_TEST(AgentTests, AvoidanceVelocityIgnoresNeighboursOutsideDetectionRadius);
+    FRIEND_TEST(AgentTests, AvoidanceVelocityRepelsNearbyNeighbour);
+    FRIEND_TEST(AgentTests, AvoidanceVelocityIgnoresTheAgentItself);
+    FRIEND_TEST(AgentTests, SociableAgentIsAttractedToDistantCompanion);
+    FRIEND_TEST(AgentTests, AgentIsNotAttractedToCompanionWithinFollowDistance);
+    FRIEND_TEST(AgentTests, InvalidCompanionIndexProducesNoAttraction);
+    FRIEND_TEST(AgentTests, ResolveTargetVelocityCombinesInfluences);
+    FRIEND_TEST(AgentTests, AccelerationIsLimitedToMaximumAcceleration);
+    FRIEND_TEST(AgentTests, SpeedIsLimitedToOneAndAHalfTimesPreferredSpeed);
+    FRIEND_TEST(AgentTests, MoveKeepsAgentInsideSimulationBounds);
+    FRIEND_TEST(AgentTests, MoveClampsAgentToMaximumBounds);
 };
