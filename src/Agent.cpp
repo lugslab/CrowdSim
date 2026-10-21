@@ -1,30 +1,13 @@
 
 #include "Agent.hpp"
+#include "VectorUtils.hpp"
 
 #include <algorithm>
 #include <cmath>
 
-namespace
-{
-    float length(sf::Vector2f v)
-    {
-        return std::sqrt(v.x * v.x + v.y * v.y);
-    }
-
-    sf::Vector2f normalize(sf::Vector2f v)
-    {
-        float magnitude = length(v);
-
-        if (magnitude < 0.0001f)
-            return { 0.f, 0.f };
-
-        return v / magnitude;
-    }
-}
-
 bool Agent::hasReachedDestination() const
 {
-    return length(destination - position) < 12.f;
+    return (destination - position).length() < 12.f;
 }
 
 void Agent::update(
@@ -44,7 +27,7 @@ void Agent::update(
         destination - position;
 
     float distanceToDestination =
-        length(toDestination);
+        toDestination.length();
 
     constexpr float slowingRadius = 50.f;
 
@@ -57,7 +40,7 @@ void Agent::update(
     }
 
     sf::Vector2f goalVelocity =
-        normalize(toDestination) *
+        VectorUtils::normalise(toDestination) *
         desiredSpeed * p.goalWeight;
 
     // 2. Separation.
@@ -75,7 +58,7 @@ void Agent::update(
         sf::Vector2f difference =
             position - other.position;
 
-        float distance = length(difference);
+        float distance = difference.length();
 
         if (distance < 0.0001f ||
             distance > p.detectionRadius)
@@ -91,15 +74,15 @@ void Agent::update(
             strength *= 3.f;
 
         avoidance +=
-            normalize(difference) * strength;
+            VectorUtils::normalise(difference) * strength;
     }
 
     sf::Vector2f targetVelocity = goalVelocity;
 
-    if (length(avoidance) > 0.0001f)
+    if (avoidance.length() > 0.0001f)
     {
         targetVelocity +=
-            normalize(avoidance) *
+            VectorUtils::normalise(avoidance) *
             p.preferredSpeed * p.avoidanceWeight;
     }
 
@@ -114,13 +97,13 @@ void Agent::update(
         sf::Vector2f toCompanion =
             companion.position - position;
 
-        float distance = length(toCompanion);
+        float distance = toCompanion.length();
 
         // Follow only when sufficiently separated.
         if (distance > 45.f)
         {
             targetVelocity +=
-                normalize(toCompanion) *
+                VectorUtils::normalise(toCompanion) *
                 p.preferredSpeed * p.socialWeight;
         }
     }
@@ -129,24 +112,24 @@ void Agent::update(
     sf::Vector2f acceleration =
         targetVelocity - velocity;
 
-    float accelerationLength = length(acceleration);
+    float accelerationLength = acceleration.length();
 
     if (accelerationLength > maxAcceleration)
     {
         acceleration =
-            normalize(acceleration) * maxAcceleration;
+            VectorUtils::normalise(acceleration) * maxAcceleration;
     }
 
     velocity += acceleration * deltaTime;
 
     // Limit maximum speed.
-    float speed = length(velocity);
+    float speed = velocity.length();
 
     float maxSpeed = p.preferredSpeed * 1.5f;
 
     if (speed > maxSpeed)
     {
-        velocity = normalize(velocity) * maxSpeed;
+        velocity = VectorUtils::normalise(velocity) * maxSpeed;
     }
 
     // 5. Movement.

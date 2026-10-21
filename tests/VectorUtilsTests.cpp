@@ -1,0 +1,36 @@
+#include <gtest/gtest.h>
+#include "VectorUtils.hpp"
+
+TEST(VectorUtilsTets, NormaliseNonZeroCalculations)
+{
+    sf::Vector2f vector_a(200.f, 0.f);
+
+    const auto normalised_a = VectorUtils::normalise(vector_a);
+
+    EXPECT_FLOAT_EQ(normalised_a.x, 1.f);
+    EXPECT_FLOAT_EQ(normalised_a.y, 0.f);
+
+    sf::Vector2f vector_b(0.f, 50.f);
+
+    const auto normalised_b = VectorUtils::normalise(vector_b);
+
+    EXPECT_FLOAT_EQ(normalised_b.x, 0.f);
+    EXPECT_FLOAT_EQ(normalised_b.y, 1.f);
+
+    sf::Vector2f vector_c(4.f, 4.f);
+
+    const auto normalised_c = VectorUtils::normalise(vector_c);
+
+    EXPECT_FLOAT_EQ(normalised_c.x, 0.70710677f);
+    EXPECT_FLOAT_EQ(normalised_c.y, 0.70710677f);
+}
+
+TEST(VectorUtilsTets, NormaliseZeroVector)
+{
+    sf::Vector2f vector(0.f, 0.f);
+
+    const auto normalised = VectorUtils::normalise(vector);
+
+    EXPECT_FLOAT_EQ(normalised.x, 0.f);
+    EXPECT_FLOAT_EQ(normalised.y, 0.f);
+}

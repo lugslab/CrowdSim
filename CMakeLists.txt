@@ -119,6 +119,7 @@ enable_testing()
 
 add_executable(Tests
     tests/SimulationTests.cpp
+    tests/VectorUtilsTests.cpp
 )
 
 target_link_libraries(Tests PRIVATE

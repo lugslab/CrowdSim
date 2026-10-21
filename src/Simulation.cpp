@@ -199,10 +199,7 @@ void Simulation::update(float deltaTime)
 
     for (const auto& agent : m_agents)
     {
-        totalSpeed += std::sqrt(
-            agent.velocity.x * agent.velocity.x +
-            agent.velocity.y * agent.velocity.y
-        );
+        totalSpeed += agent.velocity.length();
 
         const auto index =
             static_cast<std::size_t>(
