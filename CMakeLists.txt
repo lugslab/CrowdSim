@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.24)
 
 # ============================================================
@@ -119,6 +118,8 @@ enable_testing()
 
 add_executable(Tests
     tests/AgentTests.cpp
+    tests/PerformanceMonitorTests.cpp
+    tests/PersonalityTests.cpp
     tests/SimulationTests.cpp
     tests/VectorUtilsTests.cpp
 )

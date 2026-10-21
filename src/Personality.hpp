@@ -11,13 +11,14 @@ enum class PersonalityType
 
 struct Personality
 {
+    // default values for Independent personality type
     PersonalityType type = PersonalityType::Independent;
 
-    float preferredSpeed = 55.f;
-    float detectionRadius = 35.f;
+    float preferredSpeed = 60.f;
+    float detectionRadius = 30.f;
     float personalSpace = 12.f;
 
-    float avoidanceWeight = 1.5f;
+    float avoidanceWeight = 1.2f;
     float goalWeight = 1.f;
     float socialWeight = 0.f;
 
@@ -53,10 +54,7 @@ struct Personality
             break;
 
         case PersonalityType::Independent:
-            p.preferredSpeed = 60.f;
-            p.detectionRadius = 30.f;
-            p.personalSpace = 12.f;
-            p.avoidanceWeight = 1.2f;
+            // already configured with default values
             break;
         }
 
