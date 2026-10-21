@@ -44,8 +44,8 @@ namespace Cfg
 
     namespace Destination
     {
-        static const sf::Color Fill{ 70, 200, 130, 50 };
-        static const sf::Color Outline{ 70, 200, 130 };
+        static const sf::Color FillColour{ 70, 200, 130, 50 };
+        static const sf::Color OutlineColour{ 70, 200, 130 };
         static constexpr float Radius = 12.f;
         static constexpr float Thickness = 2.f;
     }
@@ -53,7 +53,6 @@ namespace Cfg
     namespace Benchmark
     {
         static constexpr float Duration = 10.f;
-        static constexpr float MaxDeltaTime = 0.05f;
         constexpr std::array<int, 5> AgentCounts{
             100, 500, 1000, 2500, 5000
         };
@@ -62,7 +61,8 @@ namespace Cfg
     namespace Window
     {
         static constexpr sf::Vector2u Size{ 1000, 700 };
-        static const sf::Color BgColour{ 25, 28, 35 };
+        static const sf::Color BackgroundColour{ 25, 28, 35 };
+        static constexpr float MaxDeltaTime = 0.05f;
     }
 }
 
@@ -86,7 +86,8 @@ AppInterface::AppInterface()
     window.setFramerateLimit(60);
     // Check if the debug panel font loaded successfully
     if (!debugPanel.isLoaded()) {
-        std::cout << "DebugPanel font not loaded, cannot draw debug panel." << std::endl;
+        std::cerr << "DebugPanel font not loaded, cannot draw debug panel."
+          << std::endl;
     }
 }
 
@@ -106,25 +107,30 @@ void AppInterface::runEventLoop()
         while (const auto event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
-
+            }
             if (const sf::Event::KeyPressed* key =
                 event->getIf<sf::Event::KeyPressed>())
             {
                 handleKeyPressed(key);
             }
         }
+        if (!window.isOpen())
+        {
+            // close event was received, exit the main loop
+            break;
+        }
         if (!paused)
         {
-            simulation.update(std::min(deltaTime, Cfg::Benchmark::MaxDeltaTime));
+            //TODO handle pause during benchmarking, currently it will continue to run the benchmark in the background
+            simulation.update(std::min(deltaTime, Cfg::Window::MaxDeltaTime));
         }
 
+        // gathering stats before rendering means that render stats are always one frame behind
         DebugStats stats = gatherStats(deltaTime);
 
-        renderFrame(deltaTime, stats);
-
-        window.display();
-
+        renderFrame(stats);
     }
 }
 
@@ -133,28 +139,23 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
     switch (key->code)
     {
     case sf::Keyboard::Key::Num1:
-        simulation.reset(Cfg::Benchmark::AgentCounts[0]);
-        performanceMonitor.reset();
+        resetSimulation(Cfg::Benchmark::AgentCounts[0]);
         break;
 
     case sf::Keyboard::Key::Num2:
-        simulation.reset(Cfg::Benchmark::AgentCounts[1]);
-        performanceMonitor.reset();
+        resetSimulation(Cfg::Benchmark::AgentCounts[1]);
         break;
 
     case sf::Keyboard::Key::Num3:
-        simulation.reset(Cfg::Benchmark::AgentCounts[2]);
-        performanceMonitor.reset();
+        resetSimulation(Cfg::Benchmark::AgentCounts[2]);
         break;
 
     case sf::Keyboard::Key::Num4:
-        simulation.reset(Cfg::Benchmark::AgentCounts[3]);
-        performanceMonitor.reset();
+        resetSimulation(Cfg::Benchmark::AgentCounts[3]);
         break;
 
     case sf::Keyboard::Key::Num5:
-        simulation.reset(Cfg::Benchmark::AgentCounts[4]);
-        performanceMonitor.reset();
+        resetSimulation(Cfg::Benchmark::AgentCounts[4]);
         break;
 
     case sf::Keyboard::Key::Space:
@@ -179,6 +180,11 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
     default:
         break;
     }
+}
+
+void AppInterface::resetSimulation(std::size_t agent_count) {
+    simulation.reset(agent_count);
+    performanceMonitor.reset();
 }
 
 DebugStats AppInterface::gatherStats(float deltaTime) {
@@ -219,7 +225,8 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
     return stats;
 }
 
-    void AppInterface::writeBenchmark() {
+    void AppInterface::writeBenchmark()
+    {
 
         const auto result =
             performanceMonitor.getSummary();
@@ -248,10 +255,10 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
     }
 
 
-    void AppInterface::renderFrame(float deltaTime, const DebugStats& stats) {
+    void AppInterface::renderFrame(const DebugStats& stats) {
         renderStart = Clock::now();
 
-        window.clear(Cfg::Window::BgColour);
+        window.clear(Cfg::Window::BackgroundColour);
 
         drawDestinations();
 
@@ -261,6 +268,8 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
         {
             debugPanel.draw(window, stats);
         }
+
+        window.display();
 
         renderEnd = Clock::now();
     }
@@ -285,8 +294,8 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
             Cfg::Destination::Radius,
             Cfg::Destination::Radius
         });
-        destinationShape.setFillColor(Cfg::Destination::Fill);
-        destinationShape.setOutlineColor(Cfg::Destination::Outline);
+        destinationShape.setFillColor(Cfg::Destination::FillColour);
+        destinationShape.setOutlineColor(Cfg::Destination::OutlineColour);
         destinationShape.setOutlineThickness(Cfg::Destination::Thickness);
 
         return destinationShape;

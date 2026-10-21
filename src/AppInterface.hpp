@@ -31,9 +31,10 @@ private:
     Clock::time_point renderEnd;
 
     void handleKeyPressed(const sf::Event::KeyPressed* key);
+    void resetSimulation(std::size_t agent_count);
     DebugStats gatherStats(float deltaTime);
     void writeBenchmark();
-    void renderFrame(float deltaTime, const DebugStats& stats);
+    void renderFrame(const DebugStats& stats);
     void drawDestinations();
     sf::CircleShape getDestinationShape() const;
     void drawAgents();
