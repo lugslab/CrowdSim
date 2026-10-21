@@ -118,6 +118,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(Tests
+    tests/AgentTests.cpp
     tests/SimulationTests.cpp
     tests/VectorUtilsTests.cpp
 )
