@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Personality.hpp"
@@ -8,8 +7,11 @@
 #include <cstddef>
 #include <vector>
 
+using namespace std;
+
 struct Agent
 {
+
     sf::Vector2f position{};
     sf::Vector2f velocity{};
     sf::Vector2f destination{};
@@ -24,13 +26,19 @@ struct Agent
 
     void update(
         float deltaTime,
-        const std::vector<Agent>& neighbours,
-        std::size_t selfIndex,
+        const vector<Agent>& neighbours,
         float width,
         float height,
-        std::size_t& neighbourChecks,
-        std::size_t& neighbourInteractions
+        size_t& neighbourChecks,
+        size_t& neighbourInteractions
     );
+    sf::Vector2f Agent::calculateGoalVelocity() const;
+    sf::Vector2f Agent::calculateAvoidanceVelocity(const vector<Agent>& neighbours, size_t& neighbourChecks, size_t& neighbourInteractions);
+    sf::Vector2f Agent::calculateAttractionVelocity(const vector<Agent>& neighbours);
+    sf::Vector2f Agent::resolveTargetVelocity(sf::Vector2f goalVelocity, sf::Vector2f proximityAvoidance, sf::Vector2f socialAttraction);
+    void Agent::applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
+    void Agent::clampSpeed();
+    void move(float width, float height, float deltaTime);
 
     bool hasReachedDestination() const;
 };
