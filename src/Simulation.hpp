@@ -15,7 +15,7 @@ using Clock = std::chrono::steady_clock;
 class Simulation
 {
 public:
-    Simulation();
+    Simulation(const Area& area);
 
     void update(float deltaTime);
 
@@ -27,6 +27,7 @@ public:
     std::size_t getAgentCount() const;
 
 private:    
+    const Area m_area;
     DebugStats m_stats;
 
     std::vector<Agent> m_agents;
@@ -44,6 +45,7 @@ private:
     void joinCompanions(std::size_t index_a, std::size_t index_b);
 
     void updateAgents(float deltaTime);
+    std::vector<Agent> getRegionSnapshot(std::size_t agentIndex) const;
     void updateAgentDestinations();
     void updateStats(Clock::time_point simulation_start);
 };

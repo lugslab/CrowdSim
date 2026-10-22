@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Area.hpp"
 #include "Personality.hpp"
 
 #include <gtest/gtest_prod.h>
@@ -25,6 +26,7 @@ public:
     int companionIndex = -1;
 
     void update(
+        const Area& area,
         float deltaTime,
         const std::vector<Agent>& neighbours,
         std::size_t& neighbourChecks,
@@ -46,7 +48,7 @@ private:
     sf::Vector2f resolveTargetVelocity(sf::Vector2f goalVelocity, sf::Vector2f proximityAvoidance, sf::Vector2f socialAttraction);
     void applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
     void clampSpeed();
-    void move(float deltaTime);
+    void move(const Area& area, float deltaTime);
 
     // provide access for tests
     // TODO re-evaluate code structure and testing approach

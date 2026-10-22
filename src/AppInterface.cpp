@@ -68,21 +68,25 @@ namespace Cfg
 
 AppInterface::AppInterface()
 // Initialise the SFML window
-    : window(
-        sf::VideoMode({ Area::getWidth(), Area::getHeight() }),
-        "CrowdSim - Debug Panel"
+    : m_window(
+        sf::VideoMode({ 
+            static_cast<unsigned>(m_area.getWidth()), 
+            static_cast<unsigned>(m_area.getHeight())
+        }),
+        "CrowdSim"
     )
 
     // Initialise the debug panel with its font path
-    , debugPanel("assets/COUR.ttf")
+    , m_debugPanel("assets/COUR.ttf")
 
 {
-    window.setFramerateLimit(60);
+    m_window.setFramerateLimit(60);
     // Check if the debug panel font loaded successfully
-    if (!debugPanel.isLoaded()) {
+    if (!m_debugPanel.isLoaded()) {
         std::cerr << "DebugPanel font not loaded, cannot draw debug panel."
           << std::endl;
     }
+
 }
 
 void AppInterface::runEventLoop()
@@ -90,7 +94,7 @@ void AppInterface::runEventLoop()
 
     auto previousFrame = Clock::now();
 
-    while (window.isOpen())
+    while (m_window.isOpen())
     {
         const auto frameStart = Clock::now();
 
@@ -98,10 +102,10 @@ void AppInterface::runEventLoop()
 
         previousFrame = frameStart;
 
-        while (const auto event = window.pollEvent())
+        while (const auto event = m_window.pollEvent())
         {
             if (event->is<sf::Event::Closed>()) {
-                window.close();
+                m_window.close();
             }
             if (const sf::Event::KeyPressed* key =
                 event->getIf<sf::Event::KeyPressed>())
@@ -109,15 +113,15 @@ void AppInterface::runEventLoop()
                 handleKeyPressed(key);
             }
         }
-        if (!window.isOpen())
+        if (!m_window.isOpen())
         {
             // close event was received, exit the main loop
             break;
         }
-        if (!paused)
+        if (!m_paused)
         {
             //TODO handle pause during benchmarking, currently it will continue to run the benchmark in the background
-            simulation.update(std::min(deltaTime, Cfg::Window::MaxDeltaTime));
+            m_simulation.update(std::min(deltaTime, Cfg::Window::MaxDeltaTime));
         }
 
         // gathering stats before rendering means that render stats are always one frame behind
@@ -152,22 +156,22 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
         break;
 
     case sf::Keyboard::Key::Space:
-        paused = !paused;
+        m_paused = !m_paused;
         break;
 
     case sf::Keyboard::Key::F1:
-        showDebugPanel = !showDebugPanel;
+        m_showDebugPanel = !m_showDebugPanel;
         break;
 
     case sf::Keyboard::Key::B:
-        benchmarking = true;
-        benchmarkStart = Clock::now();
-        performanceMonitor.reset();
+        m_benchmarking = true;
+        m_benchmarkStart = Clock::now();
+        m_performanceMonitor.reset();
         std::cout << "Benchmark started\n";
         break;
 
     case sf::Keyboard::Key::Escape:
-        window.close();
+        m_window.close();
         break;
 
     default:
@@ -176,42 +180,42 @@ void AppInterface::handleKeyPressed(const sf::Event::KeyPressed* key)
 }
 
 void AppInterface::resetSimulation(std::size_t agent_count) {
-    simulation.reset(agent_count);
-    performanceMonitor.reset();
+    m_simulation.reset(agent_count);
+    m_performanceMonitor.reset();
 }
 
 DebugStats AppInterface::gatherStats(float deltaTime) {
-    DebugStats stats = simulation.getStats();
+    DebugStats stats = m_simulation.getStats();
 
     stats.frameTimeMs = deltaTime * 1000.f;
 
     if (deltaTime > 0.f)
         stats.fps = 1.f / deltaTime;
 
-    stats.renderTimeMs = elapsedMilliseconds(renderStart, renderEnd);
+    stats.renderTimeMs = elapsedMilliseconds(m_renderStart, m_renderEnd);
 
 
-    performanceMonitor.recordFrame(
+    m_performanceMonitor.recordFrame(
         stats.frameTimeMs,
         stats.simulationTimeMs,
         stats.renderTimeMs
     );
 
     const PerformanceSummary summary =
-        performanceMonitor.getSummary();
+        m_performanceMonitor.getSummary();
 
     stats.fps = summary.averageFps;
     stats.frameTimeMs = summary.averageFrameMs;
     stats.simulationTimeMs = summary.averageSimulationMs;
     stats.renderTimeMs = summary.averageRenderMs;
 
-    if (benchmarking)
+    if (m_benchmarking)
     {
-        const float elapsed = elapsedSeconds(benchmarkStart, Clock::now());
+        const float elapsed = elapsedSeconds(m_benchmarkStart, Clock::now());
 
         if (elapsed >= Cfg::Benchmark::Duration) {
             // stop benchmarking and write results
-            benchmarking = false;
+            m_benchmarking = false;
             writeBenchmark();
         }
     }
@@ -222,11 +226,11 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
     {
 
         const auto result =
-            performanceMonitor.getSummary();
+            m_performanceMonitor.getSummary();
 
         std::cout << "\n=== CrowdSim Benchmark ===\n";
         std::cout << "Agents: "
-            << simulation.getAgentCount() << '\n';
+            << m_simulation.getAgentCount() << '\n';
 
         std::cout << "Frames: "
             << result.frames << '\n';
@@ -249,32 +253,32 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
 
 
     void AppInterface::renderFrame(const DebugStats& stats) {
-        renderStart = Clock::now();
+        m_renderStart = Clock::now();
 
-        window.clear(Cfg::Window::BackgroundColour);
+        m_window.clear(Cfg::Window::BackgroundColour);
 
         drawDestinations();
 
         drawAgents();
 
-        if (showDebugPanel)
+        if (m_showDebugPanel)
         {
-            debugPanel.draw(window, stats);
+            m_debugPanel.draw(m_window, stats);
         }
 
-        window.display();
+        m_window.display();
 
-        renderEnd = Clock::now();
+        m_renderEnd = Clock::now();
     }
 
     void AppInterface::drawDestinations() {
         sf::CircleShape destinationShape = getDestinationShape();
         // Draw destinations.
         for (const auto& destination :
-            simulation.getDestinations())
+            m_simulation.getDestinations())
         {
             destinationShape.setPosition(destination);
-            window.draw(destinationShape);
+            m_window.draw(destinationShape);
         }
 
     }
@@ -302,7 +306,7 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
 
         // Draw agents.
         for (const auto& agent :
-            simulation.getAgents())
+            m_simulation.getAgents())
         {
             // default to independent colour, override for other personality types
             auto colour = Cfg::AgentColour::Independent;
@@ -317,6 +321,6 @@ DebugStats AppInterface::gatherStats(float deltaTime) {
             }
             agentShape.setFillColor(colour);
             agentShape.setPosition(agent.position);
-            window.draw(agentShape);
+            m_window.draw(agentShape);
         }
     }

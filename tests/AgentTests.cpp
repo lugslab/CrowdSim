@@ -206,28 +206,31 @@ TEST(AgentTests, SpeedIsLimitedToOneAndAHalfTimesPreferredSpeed)
 
 TEST(AgentTests, MoveKeepsAgentInsideSimulationBounds)
 {
+    Area area({ 1000.f, 700.f }, 10, 7);
     Agent agent;
     agent.position = { 10.f, 10.f };
     agent.velocity = { -100.f, -100.f };
 
-    agent.move(1.f);
+    agent.move(area, 1.f);
 
     expectVectorNear(agent.position, { 4.f, 4.f });
 }
 
 TEST(AgentTests, MoveClampsAgentToMaximumBounds)
 {
+    Area area({ 1000.f, 700.f }, 10, 7);
     Agent agent;
     agent.position = { 990.f, 650.f };
     agent.velocity = { 100.f, 100.f };
 
-    agent.move(1.f);
+    agent.move(area, 1.f);
 
     expectVectorNear(agent.position, { 996.f, 696.f });
 }
 
 TEST(AgentTests, UpdateMovesAgentTowardDestination)
 {
+    Area area({ 1000.f, 700.f }, 10, 7);
     Agent agent;
     agent.position = { 100.f, 100.f };
     agent.destination = { 200.f, 100.f };
@@ -237,6 +240,7 @@ TEST(AgentTests, UpdateMovesAgentTowardDestination)
     std::size_t neighbourInteractions = 0;
 
     agent.update(
+        area,
         0.1f,
         {},
         neighbourChecks,

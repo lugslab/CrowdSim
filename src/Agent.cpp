@@ -10,6 +10,7 @@ bool Agent::hasReachedDestination() const
 }
 
 void Agent::update(
+    const Area& area,
     float deltaTime,
     const std::vector<Agent>& neighbours,
     std::size_t& neighbourChecks,
@@ -35,7 +36,7 @@ void Agent::update(
     // Limit maximum speed.
     clampSpeed();
 
-    move(deltaTime);
+    move(area, deltaTime);
 }
 
 sf::Vector2f Agent::calculateGoalVelocity() const {
@@ -168,9 +169,9 @@ void Agent::clampSpeed() {
     }
 }
 
-void Agent::move(float deltaTime) {
+void Agent::move(const Area& area, float deltaTime) {
     // update position after deltaTime seconds
     position += velocity * deltaTime;
     // limit movement to within the bounds of the simulation area
-    Area::moveWithinBounds(position, agentRadius);
+    area.moveWithinBounds(position, agentRadius);
 }

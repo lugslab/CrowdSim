@@ -1,25 +1,37 @@
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include <SFML/System/Vector2.hpp>
 
+
+// Add to Area's public section:
+
+
+
 class Area {
 public:
-    // Constructor
-    Area();
+    Area(sf::Vector2f areaSize,
+        std::size_t rows,
+        std::size_t columns);
 
-    static unsigned getWidth() {
-        return size.x;
+    float getWidth() const {
+        return m_areaSize.x;
     }
 
-    static unsigned getHeight() {
-        return size.y;
+    float getHeight() const {
+        return m_areaSize.y;
     }
 
-    static void moveWithinBounds(sf::Vector2f& position, float radius);
+    void moveWithinBounds(sf::Vector2f& position, float radius) const;
 
-    static std::vector<sf::Vector2f> placeDestinations(float offset);
+    std::vector<sf::Vector2f> placeDestinations(float offset) const;
+
 private:
-    static constexpr sf::Vector2u size{ 1000, 700 };
+    const sf::Vector2f m_areaSize;
+    const std::size_t m_rows;
+    const std::size_t m_columns;
+    const sf::Vector2f m_regionSize;
+
 };

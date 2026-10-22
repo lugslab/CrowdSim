@@ -12,10 +12,10 @@ namespace Cfg {
     static constexpr std::size_t AgentCount = 100;
 }
 
-Simulation::Simulation()
-    : m_rng(std::random_device{}())
+Simulation::Simulation(const Area& area)
+    : m_area(area), m_rng(std::random_device{}())
 {
-    m_destinations = Area::placeDestinations(Cfg::DestinationOffset);
+    m_destinations = m_area.placeDestinations(Cfg::DestinationOffset);
 
     initialiseAllAgents(Cfg::AgentCount);
 
@@ -62,11 +62,11 @@ std::size_t Simulation::getAgentCount() const
 sf::Vector2f Simulation::randomPosition()
 {
     std::uniform_real_distribution<float> xDist(
-        Agent::agentRadius, Area::getWidth() - Agent::agentRadius
+        Agent::agentRadius, m_area.getWidth() - Agent::agentRadius
     );
 
     std::uniform_real_distribution<float> yDist(
-        Agent::agentRadius, Area::getHeight() - Agent::agentRadius
+        Agent::agentRadius, m_area.getHeight() - Agent::agentRadius
     );
 
     return { xDist(m_rng), yDist(m_rng) };
@@ -129,7 +129,7 @@ void Simulation::joinCompanions(std::size_t index_a, std::size_t index_b)
        sf::Vector2f{ Cfg::CompanionOffset, Cfg::CompanionOffset };
 
     // Keep the second agent inside the area.
-   Area::moveWithinBounds(
+   m_area.moveWithinBounds(
        agent_b.position,
        Agent::agentRadius
    );
@@ -157,6 +157,7 @@ void Simulation::updateAgents(float deltaTime)
     for (std::size_t i = 0; i < m_agents.size(); ++i)
     {
         m_agents[i].update(
+            m_area,
             deltaTime,
             snapshot,
             m_stats.neighbourChecks,
@@ -164,6 +165,11 @@ void Simulation::updateAgents(float deltaTime)
         );
     }
 
+}
+
+std::vector<Agent> Simulation::getRegionSnapshot(std::size_t agentIndex) const
+{
+    return m_agents;
 }
 
 void Simulation::updateAgentDestinations()

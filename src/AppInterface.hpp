@@ -16,20 +16,21 @@ public:
 
     void runEventLoop();
 private:
-    sf::RenderWindow window;
+    const Area m_area{ {1000.f, 700.f}, 10, 7 };
+    Simulation m_simulation{ m_area };
 
-    Simulation simulation;
-    DebugPanel debugPanel;
+    sf::RenderWindow m_window;
+    DebugPanel m_debugPanel;
 
-    PerformanceMonitor performanceMonitor;
+    PerformanceMonitor m_performanceMonitor;
 
-    bool paused = false;
-    bool showDebugPanel = true;
-    bool benchmarking = false;
+    bool m_paused = false;
+    bool m_showDebugPanel = true;
+    bool m_benchmarking = false;
 
-    Clock::time_point benchmarkStart;
-    Clock::time_point renderStart;
-    Clock::time_point renderEnd;
+    Clock::time_point m_benchmarkStart;
+    Clock::time_point m_renderStart;
+    Clock::time_point m_renderEnd;
 
     void handleKeyPressed(const sf::Event::KeyPressed* key);
     void resetSimulation(std::size_t agent_count);

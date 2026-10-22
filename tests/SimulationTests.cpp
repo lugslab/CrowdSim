@@ -5,7 +5,7 @@
 
 TEST(SimulationTest, ConstructorCreates100Agents)
 {
-    Simulation simulation;
+    Simulation simulation{ Area{ {1000.f, 700.f}, 10, 7 } };
 
     const auto& agents = simulation.getAgents();
 
@@ -14,8 +14,9 @@ TEST(SimulationTest, ConstructorCreates100Agents)
 
 TEST(SimulationTest, AgentsStartWithinBounds) 
 {
-
-    Simulation simulation;
+    const float areaWidth = 1000.f;
+    const float areaHeight = 700.f;
+    Simulation simulation{ Area{ {areaWidth, areaHeight}, 10, 7 } };
 
     const auto& agents = simulation.getAgents();
 
@@ -26,16 +27,16 @@ TEST(SimulationTest, AgentsStartWithinBounds)
         const auto position = agent.position;
 
         EXPECT_GE(position.x, 0.f);
-        EXPECT_LE(position.x, Area::getWidth());
+        EXPECT_LE(position.x, areaWidth);
 
         EXPECT_GE(position.y, 0.f);
-        EXPECT_LE(position.y, Area::getHeight());
+        EXPECT_LE(position.y, areaHeight);
     }
 }
 
 TEST(SimulationTest, ConstructorCreatesCorrectDestinations)
 {
-    Simulation simulation;
+    Simulation simulation{ Area{ {1000.f, 700.f}, 10, 7 } };
 
     const auto& destinations = simulation.getDestinations();
 
