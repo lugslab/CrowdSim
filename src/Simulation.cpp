@@ -151,7 +151,7 @@ void Simulation::update(float deltaTime)
 
 void Simulation::updateAgents(float deltaTime)
 {
-
+    // copy all agents in their current positions to avoid agents influencing each other in the same update cycle
     const std::vector<Agent> snapshot = m_agents;
 
     for (std::size_t i = 0; i < m_agents.size(); ++i)
