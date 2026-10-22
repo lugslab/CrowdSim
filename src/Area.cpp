@@ -39,3 +39,55 @@ std::vector<sf::Vector2f> Area::placeDestinations(float offset) const
     };
 }
 
+
+std::size_t Area::regionIndexAtPosition(
+    sf::Vector2f position
+) const
+{
+    const float virtual_row = position.y / m_regionSize.y;
+    const float row_in_bounds = std::clamp(virtual_row, 0.f, m_rows - 1.f);
+   
+    const float virtual_column = position.x / m_regionSize.x;
+    const float column_in_bounds = std::clamp(virtual_column, 0.f, m_columns - 1.f);
+
+    return regionIndex(
+        static_cast<std::size_t>(row_in_bounds),
+        static_cast<std::size_t>(column_in_bounds)
+    );
+}
+
+std::vector<std::size_t> Area::getRegionAndNeighbourIndices(
+    std::size_t regionIndex
+) const
+{
+    // convert 1D index to 2D row and column
+    const std::size_t column =
+        regionIndex % m_columns;
+
+    const std::size_t row =
+        regionIndex / m_columns;
+
+    // determine the bounds of the (up to) 3x3 grid around the given region
+    const std::size_t minRow = row > 0 ? row - 1 : 0;
+    const std::size_t maxRow = std::min(row + 1, m_rows - 1);
+
+    const std::size_t minColumn = column > 0 ? column - 1 : 0;
+    const std::size_t maxColumn = std::min(column + 1, m_columns - 1);
+
+    // visit (up to) 9 regions and store their indices
+    std::vector<std::size_t> regionIndices;
+    regionIndices.reserve(9);
+
+    for (int r = minRow; r <= maxRow; ++r)
+    {
+        for (int c = minColumn;
+            c <= maxColumn; ++c)
+        {
+            regionIndices.push_back(
+                r * m_columns + c
+            );
+        }
+    }
+
+    return regionIndices;
+}

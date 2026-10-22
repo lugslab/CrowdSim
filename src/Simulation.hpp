@@ -35,6 +35,9 @@ private:
 
     std::mt19937 m_rng;
 
+    bool m_useRegions = true;
+    std::vector<Agent> m_snapshot;
+
     sf::Vector2f randomPosition();
     sf::Vector2f randomDestination();
 
@@ -45,7 +48,8 @@ private:
     void joinCompanions(std::size_t index_a, std::size_t index_b);
 
     void updateAgents(float deltaTime);
-    std::vector<Agent> getRegionSnapshot(std::size_t agentIndex) const;
+    std::vector<std::vector<Agent>> Simulation::populateRegionSnapshots() const;
+    std::vector<std::vector<Agent>> Simulation::populateRegionNeighbourhoods() const;
     void updateAgentDestinations();
     void updateStats(Clock::time_point simulation_start);
 };
