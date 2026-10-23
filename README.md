@@ -12,4 +12,10 @@ Milestones
 6. Debug Panel with performance metrics
 7. Keyboard controls, dynamic agent count and performance benchmarking
 8. Refactoring for human consumption
+9. Regions and neighbourhoods for performance
 
+To Do
+
+10. Refactoring for cleanliness, correctness and consistency
+11. Improve test suite, identify edge cases
+12. Multiple "areas", movement of agents between areas
