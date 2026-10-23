@@ -1,4 +1,5 @@
 #include "Agent.hpp"
+#include "AgentRange.hpp"
 #include "Area.hpp"
 #include "VectorUtils.hpp"
 
@@ -12,7 +13,8 @@ bool Agent::hasReachedDestination() const
 void Agent::update(
     const Area& area,
     float deltaTime,
-    const std::vector<Agent>& neighbours,
+    const std::vector<Agent>& all_agents,
+    const AgentRange& neighbours,
     std::size_t& neighbourChecks,
     std::size_t& neighbourInteractions
 )
@@ -26,7 +28,7 @@ void Agent::update(
     sf::Vector2f proximityAvoidance = calculateAvoidanceVelocity(neighbours, neighbourChecks, neighbourInteractions);
     
     // Companion attraction.
-    sf::Vector2f socialAttraction = calculateAttractionVelocity(neighbours);
+    sf::Vector2f socialAttraction = calculateAttractionVelocity(all_agents);
 
     // Resolve and apply velocities
     sf::Vector2f targetVelocity = resolveTargetVelocity(goalVelocity, proximityAvoidance, socialAttraction);
@@ -63,15 +65,18 @@ sf::Vector2f Agent::calculateGoalVelocity() const {
     return goalVelocity;
 }
 
-sf::Vector2f Agent::calculateAvoidanceVelocity(const std::vector<Agent>& neighbours, std::size_t& neighbourChecks, std::size_t& neighbourInteractions) {
+
+sf::Vector2f Agent::calculateAvoidanceVelocity(
+    const AgentRange& neighbours,
+    std::size_t& neighbourChecks,
+    std::size_t& neighbourInteractions)
+{
     sf::Vector2f combinedAvoidance{ 0.f, 0.f };
 
-    for (std::size_t i = 0; i < neighbours.size(); ++i)
+    for (const Agent& other : neighbours)
     {
         // count the number of neighbour checks for performance analysis
         ++neighbourChecks;
-
-        const Agent& other = neighbours[i];
 
         sf::Vector2f difference =
             position - other.position;

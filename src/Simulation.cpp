@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <chrono>
+#include <numeric>
 #include <random>
 
+#include "AgentRange.hpp"
 #include "Area.hpp"
 #include "Simulation.hpp"
 
@@ -152,86 +154,101 @@ void Simulation::update(float deltaTime)
 }
 
 
-std::vector<std::vector<Agent>> Simulation::populateRegionNeighbourhoods() const {
-    // build a register of all agents in each region
+std::vector<std::vector<std::size_t>>
+Simulation::populateRegionNeighbourhoods() const
+{
     const auto regionSnapshots = populateRegionSnapshots();
 
-    // combine regions into 3x3 neighbourhoods (to avoid boundary problems)
-    std::vector<std::vector<Agent>> neighbourhoodSnapshots;
-    neighbourhoodSnapshots.reserve(m_area.getRegionCount());
+    std::vector<std::vector<std::size_t>> neighbourhoodSnapshots(m_area.getRegionCount());
+
     for (std::size_t i = 0; i < regionSnapshots.size(); ++i)
     {
-        const auto regionIndices = m_area.getRegionAndNeighbourIndices(i);
-        std::vector<Agent> neighbourhood;
+        const auto neighbourhoodRegionIndices =
+            m_area.getRegionAndNeighbourIndices(i);
 
-        for (const auto regionIndex : regionIndices)
+        std::vector<std::size_t> neighbourhood;
+
+        for (const std::size_t regionIndex : neighbourhoodRegionIndices)
         {
-            const auto& regionAgents = regionSnapshots.at(regionIndex);
-            // stream region agents into neighbourhood
+            const auto& agents = regionSnapshots.at(regionIndex);
+
             neighbourhood.insert(
                 neighbourhood.end(),
-                regionAgents.begin(),
-                regionAgents.end()
+                agents.begin(),
+                agents.end()
             );
         }
 
         neighbourhoodSnapshots.push_back(std::move(neighbourhood));
     }
+
     return neighbourhoodSnapshots;
 }
 
-
-std::vector<std::vector<Agent>> Simulation::populateRegionSnapshots() const {
-    // collect agents in their respective regions
-    std::vector<std::vector<Agent>> regionSnapshots(
+std::vector<std::vector<std::size_t>>
+Simulation::populateRegionSnapshots() const
+{
+    std::vector<std::vector<std::size_t>> regionSnapshots(
         m_area.getRegionCount()
     );
-    
+
     for (std::size_t i = 0; i < m_agents.size(); ++i)
     {
-        std::size_t regionIndex =
-            m_area.regionIndexAtPosition(
-                m_agents[i].position
-            );
+        const std::size_t regionIndex =
+            m_area.regionIndexAtPosition(m_agents[i].position);
 
-        regionSnapshots[regionIndex].push_back(m_agents[i]);
+        regionSnapshots.at(regionIndex).push_back(i);
     }
+
     return regionSnapshots;
 }
+
+
 void Simulation::updateAgents(float deltaTime)
 {
-    std::vector<Agent> globalSnapshot;
-    std::vector<std::vector<Agent>> neighbourhoodSnapshots;
-    
-    // copy all agents in their current positions to avoid agents influencing each other in the same update cycle
+    // capture state of all agents at simulation stat
+    const std::vector<Agent> globalSnapshot = m_agents;
+
+    std::vector<std::size_t> allIndices;
+    std::vector<std::vector<::size_t>> neighbourhoodIndices;
+
     if (m_useRegions)
     {
-        // create per neighbourhood snapshots
-        neighbourhoodSnapshots = populateRegionNeighbourhoods();
+        neighbourhoodIndices = populateRegionNeighbourhoods();
     }
-    else {
-        // create snapshot of all agents
-        globalSnapshot = m_agents;
+    else
+    {
+        allIndices.resize(globalSnapshot.size());
+
+        std::iota(
+            allIndices.begin(),
+            allIndices.end(),
+            std::size_t{ 0 }
+        );
     }
     
     for (std::size_t i = 0; i < m_agents.size(); ++i)
     {
-        // resolve correct snapshot for agent
-        const std::size_t regionIndex =
-            m_useRegions
-            ? m_area.regionIndexAtPosition(m_agents[i].position)
+        // resolve correct snapshot for this agent
+        
+        // identify region, or skip calculation
+        const std::size_t regionIndex = m_useRegions
+            ? m_area.regionIndexAtPosition(globalSnapshot[i].position)
             : 0;
+        // use region indices, or all indices
+        const auto& indices = m_useRegions
+            ? neighbourhoodIndices.at(regionIndex)
+            : allIndices;
 
-        const std::vector<Agent>& snapshot =
-            m_useRegions
-            ? neighbourhoodSnapshots.at(regionIndex)
-            : globalSnapshot;
+        const AgentRange neighbours(globalSnapshot, indices);
+
 
         // update agent
         m_agents[i].update(
             m_area,
             deltaTime,
-            snapshot,
+            globalSnapshot,
+            neighbours,
             m_stats.neighbourChecks,
             m_stats.neighbourInteractions
         );

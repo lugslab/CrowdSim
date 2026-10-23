@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "Agent.hpp"
+#include "AgentRange.hpp"
 
 #include <vector>
 
@@ -67,12 +68,16 @@ TEST(AgentTests, AvoidanceVelocityIgnoresNeighboursOutsideDetectionRadius)
 
     Agent distantNeighbour;
     distantNeighbour.position = { 31.f, 0.f };
+    const std::vector<Agent> snapshot{ distantNeighbour };
+    const std::vector<std::size_t> indices{ 0 };
+
+    const AgentRange neighbours(snapshot, indices);
 
     std::size_t neighbourChecks = 0;
     std::size_t neighbourInteractions = 0;
 
     const sf::Vector2f avoidance = agent.calculateAvoidanceVelocity(
-        { distantNeighbour },
+        neighbours,
         neighbourChecks,
         neighbourInteractions);
 
@@ -90,11 +95,15 @@ TEST(AgentTests, AvoidanceVelocityRepelsNearbyNeighbour)
     Agent neighbour;
     neighbour.position = { 10.f, 0.f };
 
+    const std::vector<Agent> snapshot{ neighbour };
+    const std::vector<std::size_t> indices{ 0 };
+    const AgentRange neighbours(snapshot, indices);
+
     std::size_t neighbourChecks = 0;
     std::size_t neighbourInteractions = 0;
 
     const sf::Vector2f avoidance = agent.calculateAvoidanceVelocity(
-        { neighbour },
+        neighbours,
         neighbourChecks,
         neighbourInteractions);
 
@@ -109,11 +118,15 @@ TEST(AgentTests, AvoidanceVelocityIgnoresTheAgentItself)
     agent.position = { 10.f, 10.f };
     agent.personality = Personality::create(PersonalityType::Independent);
 
+    const std::vector<Agent> snapshot{ agent };
+    const std::vector<std::size_t> indices{ 0 };
+    const AgentRange neighbours(snapshot, indices);
+
     std::size_t neighbourChecks = 0;
     std::size_t neighbourInteractions = 0;
 
     const sf::Vector2f avoidance = agent.calculateAvoidanceVelocity(
-        { agent },
+        neighbours,
         neighbourChecks,
         neighbourInteractions);
 
@@ -231,6 +244,10 @@ TEST(AgentTests, MoveClampsAgentToMaximumBounds)
 TEST(AgentTests, UpdateMovesAgentTowardDestination)
 {
     Area area({ 1000.f, 700.f }, 10, 7);
+    const std::vector<Agent> empty_snapshot;
+    const std::vector<std::size_t> empty_indices;
+    const AgentRange neighbours(empty_snapshot, empty_indices);
+
     Agent agent;
     agent.position = { 100.f, 100.f };
     agent.destination = { 200.f, 100.f };
@@ -242,7 +259,8 @@ TEST(AgentTests, UpdateMovesAgentTowardDestination)
     agent.update(
         area,
         0.1f,
-        {},
+        empty_snapshot,
+        neighbours,
         neighbourChecks,
         neighbourInteractions);
 

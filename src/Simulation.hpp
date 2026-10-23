@@ -48,8 +48,8 @@ private:
     void joinCompanions(std::size_t index_a, std::size_t index_b);
 
     void updateAgents(float deltaTime);
-    std::vector<std::vector<Agent>> Simulation::populateRegionSnapshots() const;
-    std::vector<std::vector<Agent>> Simulation::populateRegionNeighbourhoods() const;
+    std::vector<std::vector<std::size_t>> Simulation::populateRegionSnapshots() const;
+    std::vector<std::vector<std::size_t>> Simulation::populateRegionNeighbourhoods() const;
     void updateAgentDestinations();
     void updateStats(Clock::time_point simulation_start);
 };

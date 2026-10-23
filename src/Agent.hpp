@@ -9,6 +9,9 @@
 #include <cstddef>
 #include <vector>
 
+// Forward declaration
+class AgentRange;
+
 class Agent
 {
 public:
@@ -28,7 +31,8 @@ public:
     void update(
         const Area& area,
         float deltaTime,
-        const std::vector<Agent>& neighbours,
+        const std::vector<Agent>& all_agents,
+        const AgentRange& neighbours,
         std::size_t& neighbourChecks,
         std::size_t& neighbourInteractions
     );
@@ -43,7 +47,7 @@ private:
     static constexpr float maxSpeedMultiplier = 1.5f;
    
     sf::Vector2f calculateGoalVelocity() const;
-    sf::Vector2f calculateAvoidanceVelocity(const std::vector<Agent>& neighbours, std::size_t& neighbourChecks, std::size_t& neighbourInteractions);
+    sf::Vector2f calculateAvoidanceVelocity(const AgentRange&, std::size_t& neighbourChecks, std::size_t& neighbourInteractions);
     sf::Vector2f calculateAttractionVelocity(const std::vector<Agent>& neighbours);
     sf::Vector2f resolveTargetVelocity(sf::Vector2f goalVelocity, sf::Vector2f proximityAvoidance, sf::Vector2f socialAttraction);
     void applyAcceleration(sf::Vector2f targetVelocity, float deltaTime);
