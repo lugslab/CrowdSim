@@ -19,3 +19,9 @@ To Do
 10. Refactoring for cleanliness, correctness and consistency
 11. Improve test suite, identify edge cases
 12. Multiple "areas", movement of agents between areas
+
+
+![CrowdSim simulation](assets/images/100_agents.png)
+
+
+![CrowdSim simulation](assets/images/2500_agents.png)
